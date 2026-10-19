@@ -17,14 +17,16 @@ class DummyAgent(BaseAgent):
     """Agent that randomly chooses between valid actions or idling."""
 
     async def raquete(self):
-        s=self.current_state
+        s = self.current_state
         centro_raquete = s["paddle_x"] + s["paddle_width"] / 2
-        if ((centro_raquete-s["ball_x"])<0):
-            return {"action": "move", "direction": "EST"}
-        if ((centro_raquete-s["ball_x"])>0):
+        diff = s["ball_x"] - centro_raquete   # >0: bola à direita
+
+        margem = 14
+        if diff > margem:
+            return {"action": "move", "direction": "EAST"}
+        if diff < -margem:
             return {"action": "move", "direction": "WEST"}
         return None
-    
 
     async def deliberate(self) -> dict[str, Any] | None:
         """Sample uniformly from valid moves provided in current state."""
