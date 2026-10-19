@@ -10,8 +10,21 @@ from agents.base_agent import BaseAgent
 AGENT_ID: str | None = None  # your id (e.g. "a12345"); --id overrides it; None = random
 
 
+
+
+
 class DummyAgent(BaseAgent):
     """Agent that randomly chooses between valid actions or idling."""
+
+    async def raquete(self):
+        s=self.current_state
+        centro_raquete = s["paddle_x"] + s["paddle_width"] / 2
+        if ((centro_raquete-s["ball_x"])<0):
+            return {"action": "move", "direction": "EST"}
+        if ((centro_raquete-s["ball_x"])>0):
+            return {"action": "move", "direction": "WEST"}
+        return None
+    
 
     async def deliberate(self) -> dict[str, Any] | None:
         """Sample uniformly from valid moves provided in current state."""
@@ -26,9 +39,9 @@ class DummyAgent(BaseAgent):
         if not valid_actions:
             return None
 
+
         # Randomly choose a valid move or do nothing (stay idle)
-        choices: list[dict[str, Any] | None] = [*valid_actions, None]
-        return random.choice(choices)
+        return await self.raquete()
 
 
 def main() -> None:
