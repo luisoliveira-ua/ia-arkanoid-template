@@ -4,6 +4,7 @@ import argparse
 import asyncio
 import json
 import logging
+import math
 import threading
 from typing import Any
 
@@ -134,6 +135,7 @@ class ArkanoidViewer:
         high_score = state.get("high_score", 0)
         timer = float(state.get("timer", state.get("time_elapsed", 0.0)))
         norm_score = float(state.get("normalized_score", 0.0))
+        avg_norm = float(state.get("avg_norm_score", 0.0))
         high_score_norm = float(state.get("high_score_normalized", 0.0))
         stage = state.get("stage", state.get("level", 1))
         stage_name = state.get("stage_name", state.get("level_name", f"Stage {stage}"))
@@ -148,9 +150,14 @@ class ArkanoidViewer:
         badge_text = self.font.render(f"STAGE {stage:02d}", True, (136, 192, 208))
         surface.blit(badge_text, (20, 8))
 
-        mins = int(timer // 60)
-        secs = int(timer % 60)
-        time_text = self.font.render(f"TIME: {mins:02d}:{secs:02d}", True, (216, 222, 233))
+        limit = float(state.get("level_time_limit", 0.0))
+        if limit > 0.0:  # the level deadline: count down to it (resets with every level)
+            left = max(0.0, limit - float(state.get("level_time_elapsed", 0.0)))
+            shown, label = math.ceil(left), "TIME LEFT"
+            time_color = (191, 97, 106) if left <= 30.0 else (216, 222, 233)  # Nord red for the last 30 s
+        else:  # no deadline configured: elapsed game time
+            shown, label, time_color = int(timer), "TIME", (216, 222, 233)
+        time_text = self.font.render(f"{label}: {shown // 60:02d}:{shown % 60:02d}", True, time_color)
         time_rect = time_text.get_rect(center=(self.width // 2, 16))
         surface.blit(time_text, time_rect)
 
@@ -168,12 +175,12 @@ class ArkanoidViewer:
 
         # === ROW 3: Score & High Score (Raw and Normalized rate) ===
         score_text = self.font.render(
-            f"SCORE: {score:05d} ({norm_score:.1f}/s)", True, (236, 239, 244)
+            f"SCORE: {score:05d} ({norm_score:.1f}/s)  AVG: {avg_norm:.1f}", True, (236, 239, 244)
         )
         surface.blit(score_text, (20, 58))
 
         high_text = self.font.render(
-            f"HIGH: {high_score:05d} ({high_score_norm:.1f}/s)", True, (129, 161, 193)
+            f"HIGH: {high_score:05d} (AVG {high_score_norm:.1f})", True, (129, 161, 193)
         )
         high_rect = high_text.get_rect(topright=(self.width - 20, 58))
         surface.blit(high_text, high_rect)

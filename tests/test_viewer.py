@@ -52,6 +52,34 @@ class TestViewer(unittest.TestCase):
         if os.path.exists(test_path):
             os.remove(test_path)
 
+    def test_hud_time_counts_down_to_the_level_deadline(self) -> None:
+        viewer = ArkanoidViewer(width=600, height=800)
+        viewer.init_pygame()
+        assert viewer.font is not None
+        seen: list[tuple[str, tuple[int, int, int]]] = []
+
+        class SpyFont:
+            """Records every rendered text (pygame's Font.render is read-only, so wrap the font)."""
+
+            def __init__(self, font: pygame.font.Font) -> None:
+                self.font = font
+
+            def render(self, text: str, antialias: bool, color: tuple[int, int, int]) -> pygame.Surface:
+                seen.append((text, color))
+                return self.font.render(text, antialias, color)
+
+        viewer.font = SpyFont(viewer.font)  # type: ignore[assignment]
+        surface = pygame.Surface((600, 800))
+        base = {"score": 0, "stage": 1, "lives": 3, "time_elapsed": 125.5}
+        viewer.draw_hud(surface, {**base, "level_time_limit": 600.0, "level_time_elapsed": 125.5})
+        viewer.draw_hud(surface, {**base, "level_time_limit": 600.0, "level_time_elapsed": 580.0})
+        viewer.draw_hud(surface, {**base, "level_time_limit": 0.0})
+        times = [(t, c) for t, c in seen if t.startswith("TIME")]
+        self.assertEqual(times[0][0], "TIME LEFT: 07:55")  # 600 - 125.5 = 474.5 s, rounded up
+        self.assertEqual(times[1][0], "TIME LEFT: 00:20")
+        self.assertEqual(times[1][1], (191, 97, 106))  # the last 30 s are red
+        self.assertEqual(times[2][0], "TIME: 02:05")  # no deadline configured: elapsed game time
+
     def test_viewer_rendering_headless(self) -> None:
         viewer = ArkanoidViewer(width=600, height=800)
         viewer.init_pygame()

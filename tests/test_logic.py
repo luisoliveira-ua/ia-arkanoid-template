@@ -372,6 +372,7 @@ class TestLogic(unittest.TestCase):
         self.assertIn("timer", state)
         self.assertIn("time_elapsed", state)
         self.assertIn("normalized_score", state)
+        self.assertIn("avg_norm_score", state)
         self.assertIn("high_score_normalized", state)
         self.assertIn("bricks", state)
         self.assertIn("actions", state)
@@ -396,6 +397,98 @@ class TestLogic(unittest.TestCase):
         self.assertEqual(self.game.elapsed_time, 0.0)
         self.assertEqual(self.game.score, 0)
         self.assertEqual(self.game.normalized_score, 0.0)
+
+    def _clear_level(self, game: Arkanoid, elapsed: float, points: int) -> None:
+        """Play a level fast-forwarded: `points` scored in `elapsed` seconds of its own clock, then every brick gone."""
+        game.elapsed_time += elapsed
+        game.level_elapsed = elapsed
+        game.score += points
+        game.bricks.clear()
+        game.brick_array[:, 4] = 0.0
+        game._check_level_progression()
+
+    def test_avg_norm_score_counts_only_cleared_levels(self) -> None:
+        """normalized_score is per level (its clock restarts); avg_norm_score is the sequence mean, uncleared = 0."""
+        game = self.game
+        game.level_sequence = game.level_sequence[:1] * 3
+        game.reset_game()
+        game.update(0.1)
+        game.elapsed_time = game.level_elapsed = 10.0
+        game.score = 100  # level 1 in progress: 100 points in 10 s
+        self.assertAlmostEqual(game.normalized_score, 10.0)
+        self.assertEqual(game.avg_norm_score, 0.0)  # not cleared yet: nothing earned
+
+        self._clear_level(game, 10.0, 0)
+        self.assertEqual(game.level_idx, 1)
+        self.assertEqual(game.level_norms, [10.0])
+        self.assertEqual(game.level_elapsed, 0.0)
+        self.assertEqual(game.normalized_score, 0.0)  # level 2 just started
+        self.assertAlmostEqual(game.avg_norm_score, 3.33)  # (10 + 0 + 0) / 3 levels
+
+        game.elapsed_time, game.level_elapsed = 30.0, 20.0
+        game.score = 100 + 100  # level 2: 100 points in 20 s
+        self.assertAlmostEqual(game.normalized_score, 5.0)
+        self.assertAlmostEqual(game.avg_norm_score, 3.33)
+        self._clear_level(game, 20.0, 0)
+        self.assertEqual(game.level_norms, [10.0, 5.0])
+        self.assertAlmostEqual(game.avg_norm_score, 5.0)  # (10 + 5 + 0) / 3
+        state = game.get_state()
+        self.assertEqual(state["avg_norm_score"], 5.0)
+        self.assertEqual(state["score"], 200)  # the raw high score is the sum over the levels
+
+    def test_level_lost_earns_no_normalized_score(self) -> None:
+        game = self.game
+        game.level_sequence = game.level_sequence[:1] * 3
+        game.reset_game()
+        self._clear_level(game, 10.0, 100)  # level 1 cleared: 10 points/s
+        game.elapsed_time, game.level_elapsed = 15.0, 5.0
+        game.score += 400  # level 2: many points quickly, then all lives lost
+        self.assertAlmostEqual(game.normalized_score, 80.0)
+        game.lives = 1
+        game._handle_bottom_miss()
+        self.assertTrue(game.game_over)
+        self.assertFalse(game.game_won)
+        self.assertEqual(game.normalized_score, 0.0)  # the level ended uncleared
+        self.assertAlmostEqual(game.avg_norm_score, 3.33)  # only level 1 counts: (10 + 0 + 0) / 3
+        self.assertEqual(game.score, 500)  # the raw score keeps everything, it sorts the ranking
+
+    def test_levels_label_compresses_runs(self) -> None:
+        game = self.game
+        for files, label in (
+            (["level1.json", "level2.json", "level3.json"], "1-3"),
+            (["level2.json"], "2"),
+            (["level1.json", "level3.json"], "1,3"),
+            (["level1.json", "level2.json", "level4.json"], "1-2,4"),
+            (["level3.json", "level1.json", "level2.json"], "1-3"),  # order does not matter
+            (["level1.json", "level1.json"], "1"),  # nor repeats
+            (["custom.json"], "custom.json"),
+        ):
+            game.level_sequence = files
+            self.assertEqual(game.levels_label(), label)
+
+    def test_never_clearing_agent_has_zero_avg_norm_score(self) -> None:
+        game = self.game
+        game.reset_game()
+        game.elapsed_time = game.level_elapsed = 5.0
+        game.score = 2000
+        game.lives = 1
+        game._handle_bottom_miss()
+        self.assertTrue(game.game_over)
+        self.assertEqual(game.avg_norm_score, 0.0)
+        self.assertEqual(game.normalized_score, 0.0)
+        self.assertEqual(game.score, 2000)
+
+    def test_won_sequence_averages_every_level(self) -> None:
+        game = self.game
+        game.level_sequence = game.level_sequence[:1] * 2
+        game.reset_game()
+        self._clear_level(game, 10.0, 100)  # 10 points/s
+        self._clear_level(game, 20.0, 100)  # 5 points/s
+        self.assertTrue(game.game_won)
+        self.assertTrue(game.game_over)
+        self.assertEqual(game.level_norms, [10.0, 5.0])
+        self.assertAlmostEqual(game.avg_norm_score, 7.5)  # mean of the levels, not 200 / 30
+        self.assertAlmostEqual(game.normalized_score, 5.0)  # last level, cleared
 
     def test_level_time_limit_ends_game_without_advancing(self) -> None:
         self.game.config.game.level_time_limit = 5.0

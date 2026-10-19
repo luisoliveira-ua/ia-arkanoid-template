@@ -36,6 +36,7 @@ class BaseAgent:
         self.current_state: dict[str, Any] | None = None
         self.player_id: int | None = None
         self.setup_data: dict[str, Any] | None = None
+        self.stop_reason: str = "connection closed"
 
     async def run(self) -> None:
         """Connect to game server and run the observation-action loop."""
@@ -58,9 +59,11 @@ class BaseAgent:
                         self.current_state = data
                         if data.get("game_won"):
                             logging.info("Game won! Victory achieved. Stopping agent.")
+                            self.stop_reason = "game won"
                             break
                         if data.get("game_over"):
                             logging.info("Game over received. Stopping agent.")
+                            self.stop_reason = "time limit reached" if data.get("timed_out") else "game over"
                             break
 
                         action = await self.deliberate()
@@ -69,6 +72,35 @@ class BaseAgent:
 
         except Exception as e:
             logging.error("Connection error: %s", e)
+            self.stop_reason = f"connection error: {e}"
+        self.report()
+
+    def summary(self) -> str:
+        """Plain-text result of the session from the last state received (the numbers the server grades on)."""
+        s = self.current_state or {}
+        limit = float(s.get("level_time_limit", 0.0))
+        level_time = f"{float(s.get('level_time_elapsed', 0.0)):.1f} s" + (f" of {limit:.0f} s" if limit > 0.0 else "")
+        stage, stages = s.get("stage", s.get("level", "?")), s.get("max_stages", s.get("max_levels", "?"))
+        if isinstance(stage, int) and isinstance(stages, int):
+            stage = min(stage, stages)  # after the last level is cleared the server counts one past it
+        rows = [
+            ("Agent", f"{self.name} (id {self.agent_id})"),
+            ("Stop reason", self.stop_reason),
+            ("Level", f"{stage} of {stages}: {s.get('stage_name', s.get('level_name', '?'))}"),
+            ("Score", str(s.get("score", 0))),
+            ("Avg normalized score", f"{float(s.get('avg_norm_score', 0.0)):.2f} points/s (the grade)"),
+            ("Level normalized score", f"{float(s.get('normalized_score', 0.0)):.2f} points/s"),
+            ("Game time", f"{float(s.get('time_elapsed', 0.0)):.1f} s"),
+            ("Time on this level", level_time),
+            ("Lives left", str(s.get("lives", "?"))),
+            ("High score", f"{s.get('high_score', 0)} ({float(s.get('high_score_normalized', 0.0)):.2f} points/s)"),
+        ]
+        width = max(len(k) for k, _ in rows)
+        return "\n".join(["=" * 56, "AGENT STOPPED", *(f"{k:<{width}}  {v}" for k, v in rows), "=" * 56])
+
+    def report(self) -> None:
+        """Print the session summary on the terminal when the agent stops."""
+        print(self.summary(), flush=True)
 
     async def deliberate(self) -> dict[str, Any] | None:
         """Analyze current state and decide on the next action."""

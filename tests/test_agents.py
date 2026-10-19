@@ -1,4 +1,5 @@
 import asyncio
+import json
 import unittest
 
 from agents.base_agent import BaseAgent
@@ -130,6 +131,54 @@ class TestAgents(unittest.IsolatedAsyncioTestCase):
         # Only initial handshake sent; no move action after game over
         self.assertEqual(len(sent_messages), 1)
         self.assertIn("agent", sent_messages[0])
+
+    async def test_base_agent_prints_a_summary_when_it_stops(self) -> None:
+        import contextlib
+        import io
+        import unittest.mock as mock
+
+        state = {
+            "type": "state", "game_over": True, "timed_out": True, "score": 321, "avg_norm_score": 7.5,
+            "normalized_score": 6.25,
+            "time_elapsed": 640.0, "level_time_elapsed": 600.0, "level_time_limit": 600.0, "stage": 2, "max_stages": 3,
+            "stage_name": "Level 2", "lives": 1, "high_score": 400, "high_score_normalized": 8.0,
+        }  # fmt: skip
+
+        class MockWebSocket:
+            async def send(self, msg: str) -> None:
+                return None
+
+            async def __aiter__(self):
+                yield '{"type": "setup", "player_id": 1}'
+                yield json.dumps(state)
+
+        class MockConnectContext:
+            async def __aenter__(self):
+                return MockWebSocket()
+
+            async def __aexit__(self, *args: object) -> None:
+                return None
+
+        agent = ConcreteBaseAgent(name="Summary Bot", agent_id="s1")
+        out = io.StringIO()
+        with mock.patch("websockets.connect", return_value=MockConnectContext()), contextlib.redirect_stdout(out):
+            await agent.run()
+        text = out.getvalue()
+        self.assertIn("AGENT STOPPED", text)
+        self.assertIn("Summary Bot (id s1)", text)
+        self.assertIn("time limit reached", text)
+        self.assertIn("2 of 3: Level 2", text)
+        self.assertIn("7.50 points/s", text)
+        self.assertIn("600.0 s of 600 s", text)
+
+    def test_summary_caps_the_level_after_the_last_one_is_cleared(self) -> None:
+        agent = ConcreteBaseAgent(name="Won", agent_id="w1")
+        agent.current_state = {"stage": 4, "max_stages": 3, "stage_name": "Stage 3"}
+        self.assertIn("3 of 3", agent.summary())
+
+    def test_summary_without_any_state_does_not_fail(self) -> None:
+        agent = ConcreteBaseAgent(name="Idle", agent_id="i1")
+        self.assertIn("connection closed", agent.summary())
 
     async def test_base_agent_stops_on_game_won(self) -> None:
         agent = ConcreteBaseAgent()

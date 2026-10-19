@@ -28,7 +28,7 @@ repos:
 
       - id: vulture
         name: vulture
-        entry: vulture server agents viewer tests .vulture_whitelist.py
+        entry: vulture server agents viewer tests
         language: system
         files: '(\.py$|^pyproject\.toml$)'
         pass_filenames: false

@@ -200,7 +200,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--share-highscore",
         action=argparse.BooleanOptionalAction,
         default=False,
-        help="Persist scores to the local CSV file (highscores.csv) and upload the normalized score (default: off)",
+        help="Persist scores to the local CSV file (highscores.csv) and upload the avg_norm_score (default: off)",
     )
     return parser
 

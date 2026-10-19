@@ -15,7 +15,7 @@ HIGHSCORE_URL = os.environ.get(URL_ENV, "https://leaderboard.example.invalid/api
 
 
 class RemoteScoreSubmitter:
-    """PUTs a JSON score record (name, score, normalized_score, time_elapsed, level, won, timed_out), off-thread."""
+    """PUTs a JSON score record (id, name, score, avg_norm_score, levels_cleared, ...) off-thread."""
 
     def __init__(self, url: str, token: str | None = None, timeout: float = 5.0) -> None:
         if not url.startswith(("http://", "https://")):

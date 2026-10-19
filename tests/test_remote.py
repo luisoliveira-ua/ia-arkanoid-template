@@ -49,14 +49,16 @@ class TestRemoteSubmitter(unittest.TestCase):
         with self.assertRaises(ValueError):
             RemoteScoreSubmitter("ftp://nope")
 
-    def test_game_end_uploads_normalized_score(self) -> None:
+    def test_game_end_uploads_avg_norm_score(self) -> None:
         with mock.patch.object(server_module, "HIGHSCORE_URL", self.url):
             server = ArkanoidGameServer(share_highscore=True)
         server.game.high_score_manager.filepath = None
         server.game.player_name = "ann"
         server.game.agent_id = "a1"
         server.game.score = 1000
-        server.game.elapsed_time = 50.0
+        server.game.elapsed_time = server.game.level_elapsed = 50.0
+        server.game.level_norms = [20.0]  # one level cleared at 20 points/s ...
+        server.game.level_sequence = server.game.level_sequence[:1]  # ... in a one-level sequence
         server.game.record_high_score()
         for _ in range(50):
             if received:
@@ -68,7 +70,10 @@ class TestRemoteSubmitter(unittest.TestCase):
                 "id": "a1",
                 "name": "ann",
                 "score": 1000,
-                "normalized_score": 20.0,
+                "avg_norm_score": 20.0,
+                "levels_cleared": 1,
+                "levels_played": 1,
+                "setting": "1",
                 "time_elapsed": 50.0,
                 "level": 1,
                 "won": False,
