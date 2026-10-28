@@ -85,7 +85,7 @@ Python 3.14 or newer: `pygame` has no wheel for it and the source build ends wit
 |---|---|---|
 | 1 | Backend (game server) | `python -m server.server` |
 | 2 | Viewer (Pygame window) | `python -m viewer.viewer` |
-| 3 | Agent (pick one) | `python -m agents.dummy_agent --id a12345` (bot) or `python -m agents.manual_agent --id a12345` (keyboard) |
+| 3 | Agent (pick one) | `python student.py --id a12345` (student search agent), `python -m agents.dummy_agent --id a12345` (example bot), or `python -m agents.manual_agent --id a12345` (keyboard) |
 
 Start the backend first, then the viewer, then the agent. The game starts when an agent connects; when it ends the server returns to the lobby and waits for a new agent.
 
@@ -112,7 +112,7 @@ python -m server.server --levels 3 --level-time-limit 300       # level 3 only, 
 
 ### Agent options
 
-Both example agents (run from the repository root, with the venv active) take the same options:
+All agents (run from the repository root, with the venv active) take the same options:
 
 | Option | Default | Description |
 |---|---|---|
@@ -121,6 +121,7 @@ Both example agents (run from the repository root, with the venv active) take th
 | `--id TEXT` | `AGENT_ID` variable, else random | Agent id, sent to the backend in the handshake. It identifies the agent and is the key used to rank it in the dashboard. |
 
 ```bash
+python student.py --id a12345 --name "Student Search Agent"                # predictive search agent
 python -m agents.dummy_agent --id a12345 --name "Random bot"                  # random bot
 python -m agents.manual_agent --id a12345 --server ws://192.168.1.10:8765/ws   # keyboard, remote backend
 ```
