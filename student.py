@@ -50,7 +50,7 @@ class StudentAgent(BaseAgent):
         # A short swept simulation is sufficient to estimate a useful first target.
         dt = 0.025
         elapsed = 0.0
-        for _ in range(1800):
+        for _ in range(240):
             nx, ny = x + vx * dt, y + vy * dt
             if nx < radius:
                 nx, vx = 2 * radius - nx, abs(vx)
@@ -84,7 +84,7 @@ class StudentAgent(BaseAgent):
         best_cost, best_x = math.inf, paddle_x
 
         for zone_fraction, angle in self.REGIONS:
-            target_paddle_x = min(max_x, max(0.0, landing - zone_fraction * paddle_w))
+            target_paddle_x = min(high, max(low, landing - zone_fraction * paddle_w))
             # The impact point must land inside the selected third of the paddle.
             relative = landing - target_paddle_x
             zone_width = paddle_w / 3
