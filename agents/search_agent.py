@@ -19,8 +19,8 @@ class SearchAgent(BaseAgent):
     # makes the controller alternate EAST/WEST around an unreachable target.
     DEAD_BAND = 16.0
     TRACKING_SMOOTHING = 0.25
-    SEARCH_HORIZON = 2
-    SEARCH_NODE_LIMIT = 40
+    SEARCH_HORIZON = 3
+    SEARCH_NODE_LIMIT = 64
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)

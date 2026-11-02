@@ -198,7 +198,7 @@ class ArkanoidSearchDomain(SearchDomain):
             mode = -45.0 if action == self.LEFT else 45.0
             half_width = 15.0
 
-        samples = 9 if state.remaining_bricks <= 10 else 5
+        samples = 13 if state.remaining_bricks <= 10 else 7
         outcomes: list[tuple[int, float]] = []
         for sample in range(samples):
             q = (sample + 0.5) / samples
@@ -391,7 +391,7 @@ class ArkanoidSearchDomain(SearchDomain):
         fraction, mode = self.REGIONS[action]
         del fraction  # The landing coordinate is already supplied by the caller.
         half_width = 8.0 if action == self.CENTER else 15.0
-        samples = 3
+        samples = 7 if state.remaining_bricks <= 10 else 5
         row_height = 24.0
         brick_rows: dict[int, list[int]] = {}
         for index, brick in enumerate(state.bricks):
@@ -429,9 +429,9 @@ class ArkanoidSearchDomain(SearchDomain):
         points = 0
         elapsed = 0.0
         last_hit: int | None = None
-        dt = 1.0 / self.fps
+        dt = 1.0 / (self.fps * 2)
         ceiling = self.ceiling_y + self.ball_radius
-        max_ticks = max(1, int(self.max_flight_seconds * self.fps))
+        max_ticks = max(1, int(self.max_flight_seconds * self.fps * 2))
 
         for _ in range(max_ticks):
             elapsed += dt
@@ -498,7 +498,7 @@ class ArkanoidSearchDomain(SearchDomain):
         # the flight simulator will record a miss rather than assuming a catch.
         # Match one server update per planning step. Paddle moves are discrete
         # commands of step_distance pixels, not a continuous 350 px/s motion.
-        dt = 1.0 / self.fps
+        dt = 1.0 / (self.fps * 2)
         x, y = state.ball_x, state.ball_y
         vx, vy = state.ball_vx, state.ball_vy
         bricks = list(state.bricks)
@@ -508,11 +508,11 @@ class ArkanoidSearchDomain(SearchDomain):
         paddle_direction = 0.0 if paddle_x == paddle_start else math.copysign(1.0, paddle_x - paddle_start)
         last_hit_index: int | None = None
         hit_indices: list[int] = []
-        ticks = min(int(self.max_flight_seconds * self.fps), 100000)
+        ticks = min(int(self.max_flight_seconds * self.fps * 2), 200000)
 
-        for _ in range(ticks):
+        for tick in range(ticks):
             elapsed += dt
-            movement = self.paddle_step_distance
+            movement = self.paddle_step_distance if tick % 2 == 0 else 0.0
             remaining = abs(paddle_x - paddle_start)
             paddle_start += paddle_direction * min(movement, remaining)
             nx, ny = x + vx * dt, y + vy * dt
