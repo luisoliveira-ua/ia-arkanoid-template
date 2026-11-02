@@ -56,6 +56,8 @@ class SearchAgent(BaseAgent):
             )
             if (not self._was_descending or self._locked_zone is None or self._target_x is None
                     or trajectory_changed):
+                # The tree is part of the decision: compare its best next action
+                # with the immediate plan using the same points-per-second score.
                 _, _, plan, planned_actions = search_decision(
                     state,
                     horizon=self.SEARCH_HORIZON,
@@ -68,26 +70,19 @@ class SearchAgent(BaseAgent):
                     if planned_zone is not None else None
                 )
                 if plan and len(plan) > 1 and planned_zone is not None and planned_target is not None:
-                    planned_hit = domain.predict_first_brick(initial, planned_zone)
-                    # Compare both choices by expected points per second.
-                    # Tree actions are already filtered against predicted life loss.
                     plan_rate = domain.points_per_second(plan[-1])
                     greedy_rate = float(
                         greedy_hit.get("expected_points_per_second",
                                         greedy_hit.get("full_flight_points_per_second", 0.0)) or 0.0
                     )
-                    if plan_rate > greedy_rate:
-                        self._locked_zone = planned_zone
-                        self._target_x = planned_target
-                        hit = planned_hit
+                    if plan_rate >= greedy_rate:
+                        zone, target, hit = planned_zone, planned_target, domain.predict_first_brick(initial, planned_zone)
                     else:
-                        self._locked_zone = greedy_zone
-                        self._target_x = greedy_target
-                        hit = greedy_hit
+                        zone, target, hit = greedy_zone, greedy_target, greedy_hit
                 else:
-                    self._locked_zone = greedy_zone
-                    self._target_x = greedy_target
-                    hit = greedy_hit
+                    zone, target, hit = greedy_zone, greedy_target, greedy_hit
+                self._locked_zone = zone
+                self._target_x = target
                 self._locked_hit = hit
             else:
                 hit = self._locked_hit or {

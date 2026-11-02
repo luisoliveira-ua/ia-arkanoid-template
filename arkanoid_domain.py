@@ -198,7 +198,7 @@ class ArkanoidSearchDomain(SearchDomain):
             mode = -45.0 if action == self.LEFT else 45.0
             half_width = 15.0
 
-        samples = 5
+        samples = 9 if state.remaining_bricks <= 10 else 5
         outcomes: list[tuple[int, float]] = []
         for sample in range(samples):
             q = (sample + 0.5) / samples
@@ -261,7 +261,7 @@ class ArkanoidSearchDomain(SearchDomain):
         angle = math.radians(angle_deg)
         vx, vy = self.ball_speed * math.sin(angle), -self.ball_speed * math.cos(angle)
         ceiling = self.ceiling_y + radius
-        dt = 0.025
+        dt = 1.0 / (self.fps * 2)
         last_metal: int | None = None
         row_height = 24.0
         brick_rows: dict[int, list[int]] = {}
@@ -273,7 +273,7 @@ class ArkanoidSearchDomain(SearchDomain):
             for row in range(first_row, last_row + 1):
                 brick_rows.setdefault(row, []).append(index)
 
-        for tick in range(800):
+        for tick in range(1200):
             nx, ny = x + vx * dt, y + vy * dt
             if nx < radius:
                 nx, vx = 2 * radius - nx, abs(vx)
@@ -361,7 +361,7 @@ class ArkanoidSearchDomain(SearchDomain):
                                catch_margin, travel, hits_remaining))
 
         if candidates:
-            best: tuple[tuple[float, float, float, float, float, float], str, float,
+            best: tuple[tuple[float, float, float, float, float], str, float,
                         dict[str, float | int | None]] | None = None
             for action, target, hit, target_rate, probability, shot_rate, margin, travel, hits in candidates:
                 # Rank by expected throughput; safety margins break close ties.
