@@ -69,15 +69,14 @@ class SearchAgent(BaseAgent):
                 )
                 if plan and len(plan) > 1 and planned_zone is not None and planned_target is not None:
                     planned_hit = domain.predict_first_brick(initial, planned_zone)
-                    same_immediate_priority = (
-                        domain.target_priority(planned_hit) == domain.target_priority(greedy_hit)
-                    )
+                    # Compare both choices by expected points per second.
+                    # Tree actions are already filtered against predicted life loss.
                     plan_rate = domain.points_per_second(plan[-1])
-                    greedy_rate = float(greedy_hit.get("full_flight_points_per_second", 0.0) or 0.0)
-                    if (
-                        domain.target_priority(planned_hit) > domain.target_priority(greedy_hit)
-                        or (same_immediate_priority and plan_rate > greedy_rate)
-                    ):
+                    greedy_rate = float(
+                        greedy_hit.get("expected_points_per_second",
+                                        greedy_hit.get("full_flight_points_per_second", 0.0)) or 0.0
+                    )
+                    if plan_rate > greedy_rate:
                         self._locked_zone = planned_zone
                         self._target_x = planned_target
                         hit = planned_hit

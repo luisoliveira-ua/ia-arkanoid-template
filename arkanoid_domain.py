@@ -364,13 +364,13 @@ class ArkanoidSearchDomain(SearchDomain):
             best: tuple[tuple[float, float, float, float, float, float], str, float,
                         dict[str, float | int | None]] | None = None
             for action, target, hit, target_rate, probability, shot_rate, margin, travel, hits in candidates:
-                # Prioritize easy-to-break blocks, then hit probability, then
-                # points/second. Safety was already enforced above.
-                ease_score = 1.0 / max(1, hits)
+                # Rank by expected throughput; safety margins break close ties.
+                expected_rate = 0.65 * shot_rate + 0.35 * ray_value
                 hit["target_points_per_second"] = target_rate
                 hit["full_flight_points_per_second"] = shot_rate
-                hit["ease_score"] = ease_score
-                rank = (ease_score, probability, target_rate, shot_rate, margin, -travel)
+                hit["expected_points_per_second"] = expected_rate
+                hit["ease_score"] = 1.0 / max(1, hits)
+                rank = (expected_rate, probability, margin, -travel, 1.0 / max(1, hits))
                 if best is None or rank > best[0]:
                     best = (rank, action, target, hit)
             assert best is not None
