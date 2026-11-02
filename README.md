@@ -136,6 +136,17 @@ The backend keeps only `[A-Za-z0-9._-]` and at most 64 characters of the id (emp
 
 Custom agents subclass `BaseAgent(server_uri, name, agent_id)` and implement `deliberate()`; when the agent stops (game won, game over, level time limit reached, connection lost) `BaseAgent` prints a summary on the terminal (stop reason, level, score, `avg_norm_score`, game time, lives, high score); `BaseAgent` resolves the id (`agent_id` or random) and sends `{"client": "agent", "name": ..., "id": ...}` in the handshake. The viewer takes only `--server` (WebSocket URI, default `ws://localhost:8765/ws`).
 
+### Local agent benchmark
+
+`sim_arkanoid.py` runs either agent without starting the server or viewer and prints score rate, lives lost, contacts, and wins as JSON:
+
+```bash
+python sim_arkanoid.py --agent student --layouts 0 1 2 3 --games-per-layout 5
+python sim_arkanoid.py --agent search --layouts 0 1 2 3 --games-per-layout 5 --latency 1 --contact plane
+```
+
+The simulator uses independent, simplified physics for repeatable policy comparisons; use the live server for final gameplay evaluation.
+
 ### Remote highscore upload (HTTP PUT)
 
 With `--share-highscore`, every finished game (game over or victory) is sent as one `PUT` with a minimal JSON body:

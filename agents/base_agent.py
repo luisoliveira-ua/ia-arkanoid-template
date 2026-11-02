@@ -1,11 +1,10 @@
 """Base agent client for communicating with AI Game Framework servers."""
 
+import asyncio
 import json
 import logging
 import uuid
 from typing import Any
-
-import websockets
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - AGENT - %(levelname)s - %(message)s"
@@ -40,22 +39,45 @@ class BaseAgent:
 
     async def run(self) -> None:
         """Connect to game server and run the observation-action loop."""
+        import websockets
+
         try:
             async with websockets.connect(self.server_uri) as websocket:
                 await websocket.send(json.dumps({"client": "agent", "name": self.name, "id": self.agent_id}))
                 logging.info("Connected to %s as %s (id %s)", self.server_uri, self.name, self.agent_id)
 
-                async for message in websocket:
-                    data = json.loads(message)
+                states: asyncio.Queue[dict[str, Any] | None] = asyncio.Queue(maxsize=2)
 
-                    msg_type = data.get("type")
-                    if msg_type == "setup":
-                        self.player_id = data.get("player_id")
-                        self.setup_data = data
-                        logging.info("Assigned player ID: %s", self.player_id)
-                        continue
+                def publish_latest(state: dict[str, Any] | None) -> None:
+                    if states.full():
+                        states.get_nowait()
+                    states.put_nowait(state)
 
-                    if msg_type in ("state", "update"):
+                async def receive_updates() -> None:
+                    try:
+                        async for message in websocket:
+                            data = json.loads(message)
+                            msg_type = data.get("type")
+                            if msg_type == "setup":
+                                self.player_id = data.get("player_id")
+                                self.setup_data = data
+                                logging.info("Assigned player ID: %s", self.player_id)
+                            elif msg_type in ("state", "update"):
+                                publish_latest(data)
+                                await asyncio.sleep(0)
+                    except Exception as e:
+                        self.stop_reason = f"connection error: {e}"
+                        logging.error("Connection error: %s", e)
+                    finally:
+                        publish_latest(None)
+
+                receiver = asyncio.create_task(receive_updates())
+                try:
+                    while True:
+                        data = await states.get()
+                        if data is None:
+                            break
+
                         self.current_state = data
                         if data.get("game_won"):
                             logging.info("Game won! Victory achieved. Stopping agent.")
@@ -69,6 +91,12 @@ class BaseAgent:
                         action = await self.deliberate()
                         if action is not None:
                             await websocket.send(json.dumps(action))
+                finally:
+                    receiver.cancel()
+                    try:
+                        await receiver
+                    except asyncio.CancelledError:
+                        pass
 
         except Exception as e:
             logging.error("Connection error: %s", e)
