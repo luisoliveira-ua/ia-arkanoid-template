@@ -46,26 +46,71 @@ class StudentAgent(BaseAgent):
         folded = unfolded % (2 * span)
         return radius + (folded if folded <= span else 2 * span - folded), t
 
-    def _choose_region(self, state: dict[str, Any]) -> float:
-        """Use lookahead to break ties without sacrificing immediate target quality."""
-        domain, initial, plan, actions = search_decision(state, horizon=2, node_limit=40)
-        _, greedy_target, greedy_hit = domain.choose_paddle_target(initial)
-        if plan and len(plan) > 1 and actions:
-            planned_zone = actions[0]
-            target = domain.safe_paddle_target(initial, planned_zone)
-            if target is not None:
-                planned_hit = domain.predict_first_brick(initial, planned_zone)
-                same_immediate_priority = (
-                    domain.target_priority(planned_hit) == domain.target_priority(greedy_hit)
-                )
-                plan_rate = domain.points_per_second(plan[-1]) if plan else 0.0
-                greedy_rate = float(greedy_hit.get("full_flight_points_per_second", 0.0) or 0.0)
-                if (
-                    domain.target_priority(planned_hit) > domain.target_priority(greedy_hit)
-                    or (same_immediate_priority and plan_rate > greedy_rate)
-                ):
-                    return target
-        return greedy_target
+    @staticmethod
+    def _ray_score(
+        x: float, y: float, angle: float, state: dict[str, Any], bricks: list[dict[str, Any]]
+    ) -> float:
+        """Trace a nominal outgoing ray and score its first brick collision."""
+        speed = float(state.get("ball_speed", 400.0))
+        vx, vy = speed * math.sin(math.radians(angle)), -speed * math.cos(math.radians(angle))
+        radius = float(state.get("ball_radius", 6.0))
+        width = float(state.get("width", 600.0))
+        ceiling = float(state.get("ceiling_y", 82.0)) + radius
+        # A short swept simulation is sufficient to estimate a useful first target.
+        dt = 0.025
+        elapsed = 0.0
+        for _ in range(240):
+            nx, ny = x + vx * dt, y + vy * dt
+            if nx < radius:
+                nx, vx = 2 * radius - nx, abs(vx)
+            elif nx > width - radius:
+                nx, vx = 2 * (width - radius) - nx, -abs(vx)
+            if ny < ceiling:
+                ny, vy = 2 * ceiling - ny, abs(vy)
+            elapsed += dt
+            for brick in bricks:
+                bx, by = float(brick.get("x", 0)), float(brick.get("y", 0))
+                bw, bh = float(brick.get("width", 50)), float(brick.get("height", 20))
+                if bx - radius <= nx <= bx + bw + radius and by - radius <= ny <= by + bh + radius:
+                    points = float(brick.get("points", 0))
+                    remaining = max(1, int(brick.get("hits_remaining", 1)))
+                    # Reward points while mildly preferring bricks that break sooner.
+                    return points / (elapsed + 0.5 * (remaining - 1))
+            x, y = nx, ny
+        return 0.0
+
+    def _choose_region(self, state: dict[str, Any], landing: float, time_to_paddle: float) -> float:
+        """Search paddle positions, action reachability, and the three rebound zones."""
+        paddle_x = float(state["paddle_x"])
+        paddle_w = float(state["paddle_width"])
+        max_x = float(state.get("width", 600)) - paddle_w
+        # One action is received per game tick; do not plan beyond what can be reached.
+        reachable_steps = max(1, min(30, math.ceil(time_to_paddle * 30)))
+        max_travel = reachable_steps * self.STEP
+        low, high = max(0.0, paddle_x - max_travel), min(max_x, paddle_x + max_travel)
+        bricks = [b for b in state.get("bricks", []) if not b.get("indestructible")]
+        paddle_y = float(state["paddle_y"]) - float(state.get("ball_radius", 6))
+        best_cost, best_x = math.inf, paddle_x
+
+        for zone_fraction, angle in self.REGIONS:
+            target_paddle_x = min(high, max(low, landing - zone_fraction * paddle_w))
+            # The impact point must land inside the selected third of the paddle.
+            relative = landing - target_paddle_x
+            zone_width = paddle_w / 3
+            if not (0 <= relative <= paddle_w):
+                continue
+            hit_score = self._ray_score(landing, paddle_y, angle, state, bricks)
+            catch_error = max(0.0, abs(relative - zone_fraction * paddle_w) - zone_width * 0.42)
+            distance_cost = abs(target_paddle_x - paddle_x) / self.STEP * 0.015
+            # High-value reachable targets outweigh small positioning differences.
+            cost = catch_error * 4 + distance_cost - math.log1p(hit_score) * 18
+            if cost < best_cost:
+                best_cost, best_x = cost, target_paddle_x
+
+        # If no destructible brick is reachable on the nominal rays, prioritize catching.
+        if best_cost == math.inf:
+            best_x = min(max_x, max(0.0, landing - paddle_w / 2))
+        return min(high, max(low, best_x))
 
     async def deliberate(self) -> dict[str, Any] | None:
         state = self.current_state
