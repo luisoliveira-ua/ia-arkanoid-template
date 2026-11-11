@@ -151,6 +151,7 @@ class ArkanoidGameServer(interface.GameInterface):
         """Serialize current state for agents and viewer."""
         state = self.game.get_state()
         state["player_id"] = self.player_id
+        state["acceleration"] = self.acceleration
         return state
 
     def get_setup_payload(self) -> dict[str, Any]:
