@@ -5,7 +5,7 @@ import asyncio
 
 from agents.strategic_agent import StrategicAgent
 
-# Keep the expected student module/class name for the submission entry point.
+# The submission entry point uses the angle-aware, points-per-second agent.
 StudentAgent = StrategicAgent
 AGENT_ID: str | None = None  # Set this to a group member's student number.
 

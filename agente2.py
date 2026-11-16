@@ -1,18 +1,19 @@
-"""High-throughput, risk-aware Arkanoid agent.
+"""Arkanoid agent that chooses rebounds by full-flight points per second.
 
 Run with: python agente2.py --id <student-number>
 
 The agent predicts the next paddle intercept, then compares the three paddle
-regions using stratified samples from the game's triangular bounce-angle
-distributions. It favours score rate while rejecting catches that cannot be
-reached with a useful safety margin.
+regions using Monte Carlo samples from the game's triangular bounce-angle
+distributions. It maximizes estimated points per second among safe catches.
 """
 
 from __future__ import annotations
 
 import argparse
 import asyncio
+import logging
 import math
+import random
 import time
 from typing import Any
 
@@ -20,19 +21,19 @@ from agents.base_agent import BaseAgent
 from arkanoid_domain import ArkanoidSearchDomain, ArkanoidState
 
 AGENT_ID: str | None = None
-MAX_SIM_EVENTS = 512
+MAX_SIM_EVENTS = 2048
 CollisionTables = tuple[
     list[float], list[float], list[float], list[float],
     list[int], list[int], list[int], list[bool], int,
 ]
+RouteStats = dict[tuple[int, int], tuple[int, float, float]]
 
 
 class Agent2(BaseAgent):
     """Predictive Arkanoid controller with robust shot selection."""
 
-    # Eleven strata resolve the triangular angle cone more reliably while
-    # keeping the event-based planner within a few milliseconds per replan.
-    ANGLE_SAMPLES = 11
+    # Randomized strata reduce Monte Carlo noise in each triangular angle cone.
+    ANGLE_SAMPLES = 512
     # A small dead band avoids alternating EAST/WEST when a target lies between
     # two discrete 28 px paddle positions.
     DEAD_BAND = 14.0
@@ -40,9 +41,9 @@ class Agent2(BaseAgent):
     # throughout the descent so paddle movement remains consistent.
     VELOCITY_CHANGE_EPSILON = 2.0
     SAFETY_TICKS = 2
-    RISK_WEIGHT = 0.22
-    FIRST_TARGET_WEIGHT = 0.35
-    DAMAGE_PROGRESS_WEIGHT = 0.30
+    LOOP_SEEK_PROBABILITY = 0.90
+    LEVEL_ONE_LOOP_PROBABILITY = 0.70
+    MIN_BRICKS_FOR_LOOP = 5
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
@@ -56,6 +57,7 @@ class Agent2(BaseAgent):
         self._ascending_target: float | None = None
         self._last_stage: Any = None
         self._last_lives: Any = None
+        self._rng = random.Random()
 
     def _reachable_interval(
         self, domain: ArkanoidSearchDomain, state: ArkanoidState, seconds: float,
@@ -134,42 +136,50 @@ class Agent2(BaseAgent):
         inbound_seconds: float,
         brick_rows: dict[int, list[int]],
         collision_tables: CollisionTables,
-        sample_count: int | None = None,
-    ) -> tuple[float, float, float]:
-        """Estimate score rate, lower tail, and probability of hitting a brick."""
-        _, mode = domain.REGIONS[action]
-        half_width = 8.0 if action == domain.CENTER else 15.0
-        target_weight = self.FIRST_TARGET_WEIGHT
-        samples = sample_count or self.ANGLE_SAMPLES
+        sampled_angles: list[float],
+    ) -> tuple[float, float, float, float, float, float, float, RouteStats]:
+        """Estimate score rate and probabilities of loops and metal-to-target routes."""
         rates: list[float] = []
-        hits = 0
-        for sample in range(samples):
-            probability = (sample + 0.5) / samples
-            angle = domain._triangular_quantile(
-                probability, mode - half_width, mode + half_width, mode
-            )
-            points, progress_points, flight_seconds, first_target_rate = self._simulate_shot_fast(
+        total_points = 0.0
+        total_seconds = 0.0
+        loops = 0
+        metal_hits = 0
+        metal_loops = 0
+        roof_block_loops = 0
+        route_totals: dict[tuple[int, int], list[float]] = {}
+        for angle in sampled_angles:
+            (points, _, flight_seconds, _, looped, hit_metal, metal_loop,
+             roof_block_loop, route) = self._simulate_shot_fast(
                 domain, landing_x, angle, brick_rows, collision_tables
             )
-            if first_target_rate > 0.0:
-                hits += 1
+            loops += int(looped)
+            metal_hits += int(hit_metal)
+            metal_loops += int(metal_loop)
+            roof_block_loops += int(roof_block_loop)
             flight_time = max(0.05, inbound_seconds + flight_seconds)
-            partial_damage = max(0.0, progress_points - points)
-            credited_points = points + self.DAMAGE_PROGRESS_WEIGHT * partial_damage
-            full_flight_rate = credited_points / flight_time
-            # The first-hit term helps make progress when a full flight does
-            # not yet break a multi-hit brick; the rest is real score rate.
-            rates.append(
-                (1.0 - target_weight) * full_flight_rate
-                + target_weight * first_target_rate
-            )
+            rates.append(points / flight_time)
+            total_points += points
+            total_seconds += flight_time
+            if route is not None:
+                route_total = route_totals.setdefault(route, [0.0, 0.0, 0.0])
+                route_total[0] += 1
+                route_total[1] += points
+                route_total[2] += flight_time
 
         rates.sort()
-        lower_tail = rates[max(0, len(rates) // 5 - 1)]
+        lower_tail = rates[max(0, len(rates) // 10 - 1)]
         return (
-            sum(rates) / len(rates),
+            total_points / max(0.05, total_seconds),
             lower_tail,
-            hits / samples,
+            sum(rate > 0.0 for rate in rates) / len(rates),
+            loops / len(sampled_angles),
+            metal_hits / len(sampled_angles),
+            metal_loops / len(sampled_angles),
+            roof_block_loops / len(sampled_angles),
+            {
+                route: (int(values[0]), values[1], values[2])
+                for route, values in route_totals.items()
+            },
         )
 
     @staticmethod
@@ -179,7 +189,7 @@ class Agent2(BaseAgent):
         angle_deg: float,
         brick_rows: dict[int, list[int]],
         collision_tables: CollisionTables,
-    ) -> tuple[float, float, float, float]:
+    ) -> tuple[float, float, float, float, bool, bool, bool, bool, tuple[int, int] | None]:
         """Simulate one full shot with event-based swept collisions.
 
         The game uses axis-aligned expanded-box collision checks, so jumping
@@ -202,10 +212,33 @@ class Agent2(BaseAgent):
         points = 0.0
         progress = 0.0
         first_target_rate = 0.0
+        hit_metal = False
+        metal_loop = False
+        first_metal_index: int | None = None
+        metal_to_target: tuple[int, int] | None = None
+        # Repeated position, velocity, and brick-health state means the
+        # deterministic trajectory has entered a closed cycle.
+        seen_states: dict[tuple[float, float, float, float, int | None], tuple[int, int]] = {}
+        ceiling_bounces = 0
+        brick_bounces = 0
         max_seconds = domain.max_flight_seconds
         paddle_plane = domain.paddle_y - radius
 
         for _ in range(MAX_SIM_EVENTS):
+            loop_key = (
+                round(x, 3), round(y, 3), round(vx, 3), round(vy, 3),
+                last_brick,
+            )
+            previous_counts = seen_states.get(loop_key)
+            if previous_counts is not None:
+                roof_block_loop = (
+                    ceiling_bounces > previous_counts[0]
+                    and brick_bounces > previous_counts[1]
+                )
+                return (points, progress, elapsed, first_target_rate, True,
+                        hit_metal, metal_loop, roof_block_loop, metal_to_target)
+            seen_states[loop_key] = (ceiling_bounces, brick_bounces)
+
             if last_brick is not None:
                 if not (
                     lefts[last_brick] <= x <= rights[last_brick]
@@ -294,32 +327,47 @@ class Agent2(BaseAgent):
                     x = min(domain.width - radius, max(radius, x))
                     continue
                 if boundary_kind == "ceiling":
+                    ceiling_bounces += 1
                     vy = -vy
                     y = ceiling
                     continue
-                return points, progress, elapsed, first_target_rate
+                return (points, progress, elapsed, first_target_rate, False,
+                        hit_metal, False, False, metal_to_target)
 
             x += vx * brick_time
             y += vy * brick_time
             elapsed += brick_time
+            brick_bounces += 1
             if hit_nx:
                 vx = -vx
                 x += hit_nx * 0.01
             elif hit_ny:
                 vy = -vy
                 y += hit_ny * 0.01
-            if not metals[hit_index]:
+            if metals[hit_index]:
+                hit_metal = True
+                metal_loop = True
+                if first_metal_index is None:
+                    first_metal_index = hit_index
+            else:
+                if first_metal_index is not None and metal_to_target is None:
+                    metal_to_target = (first_metal_index, hit_index)
                 if first_target_rate == 0.0:
                     first_target_rate = points_by_index[hit_index] / max(
                         0.05, elapsed * hit_requirements[hit_index]
                     )
                 progress += points_by_index[hit_index] / hit_requirements[hit_index]
                 health[hit_index] -= 1
+                # The board changed, so only detect cycles after the new
+                # health layout has stabilized.
+                seen_states.clear()
+                metal_loop = False
                 if health[hit_index] <= 0:
                     points += points_by_index[hit_index]
                     remaining -= 1
                     if remaining <= 0:
-                        return points, progress, elapsed, first_target_rate
+                        return (points, progress, elapsed, first_target_rate, False,
+                                hit_metal, False, False, metal_to_target)
             last_brick = hit_index
 
             # If another event begins while still in the same box, advance a
@@ -334,7 +382,8 @@ class Agent2(BaseAgent):
         else:
             return_seconds = max(0.0, (y - ceiling) / speed_y)
             return_seconds += max(0.0, (paddle_plane - ceiling) / speed_y)
-        return points, progress, elapsed + return_seconds, first_target_rate
+        return (points, progress, elapsed + return_seconds, first_target_rate, False,
+                hit_metal, False, False, metal_to_target)
 
     def _select_target(
         self, domain: ArkanoidSearchDomain, state: ArkanoidState
@@ -350,7 +399,17 @@ class Agent2(BaseAgent):
         # Plan the rebound even while the ball rises. That gives the paddle
         # time to reach the chosen contact zone; any later collision changes
         # the observed velocity and triggers a fresh plan.
-        best: tuple[tuple[float, float, float], str, float, float] | None = None
+        # One row per reachable zone: action, target, rates, hit/loop/metal
+        # probabilities, safety, and metal-to-target routes.
+        candidate_table: list[
+            tuple[str, float, float, float, float, float, float, float, float, float, RouteStats]
+        ] = []
+        # Shared randomized strata give every zone comparable coverage of its
+        # angle distribution while retaining Monte Carlo sampling.
+        angle_quantiles = [
+            (sample + self._rng.random()) / self.ANGLE_SAMPLES
+            for sample in range(self.ANGLE_SAMPLES)
+        ]
         row_height = 24.0
         brick_rows: dict[int, list[int]] = {}
         lefts: list[float] = []
@@ -393,47 +452,77 @@ class Agent2(BaseAgent):
                 continue
             target, edge_margin = target_choice
 
-            mean_rate, lower_rate, hit_probability = self._sampled_rate(
-                domain, action, landing_x, inbound_seconds,
-                brick_rows, collision_tables,
-            )
-            # Refine only ambiguous, low-hit-probability cones. The second
-            # stratified grid has disjoint quantiles from the first and gives
-            # small successful angle windows a fair chance to affect the plan.
-            if hit_probability <= 1.0 / self.ANGLE_SAMPLES:
-                refined_mean, refined_lower, refined_probability = self._sampled_rate(
-                    domain, action, landing_x, inbound_seconds,
-                    brick_rows, collision_tables, sample_count=2 * self.ANGLE_SAMPLES,
+            _, mode = domain.REGIONS[action]
+            half_width = 8.0 if action == domain.CENTER else 15.0
+            sampled_angles = [
+                domain._triangular_quantile(
+                    quantile, mode - half_width, mode + half_width, mode
                 )
-                total_samples = 3 * self.ANGLE_SAMPLES
-                mean_rate = (
-                    self.ANGLE_SAMPLES * mean_rate
-                    + 2 * self.ANGLE_SAMPLES * refined_mean
-                ) / total_samples
-                hit_probability = (
-                    self.ANGLE_SAMPLES * hit_probability
-                    + 2 * self.ANGLE_SAMPLES * refined_probability
-                ) / total_samples
-                lower_rate = min(lower_rate, refined_lower)
-            # Blend average throughput with a lower-tail estimate. This avoids
-            # choosing a spectacular but highly variable angle cone.
-            # With one life left, catching safely matters more than a small
-            # projected increase in points per second.
+                for quantile in angle_quantiles
+            ]
+            (mean_rate, lower_rate, hit_probability, loop_probability,
+             metal_hit_probability, metal_loop_probability, roof_block_probability,
+             route_stats) = self._sampled_rate(
+                domain, action, landing_x, inbound_seconds,
+                brick_rows, collision_tables, sampled_angles,
+            )
+            # Maximize the estimated real score rate directly. Safety only
+            # breaks exact rate ties; per-brick and loop stats stay diagnostic.
             safety = min(1.0, edge_margin / (domain.paddle_width / 2))
-            risk_weight = 0.42 if state.lives <= 1 else self.RISK_WEIGHT
-            score = (1.0 - risk_weight) * mean_rate + risk_weight * lower_rate
-            score *= 0.96 + 0.04 * safety
-            # Hit probability is the primary objective: never prefer a higher
-            # score estimate when the simulated shot is more likely to miss
-            # every destructible brick. Safety and points/s break ties.
-            rank = (hit_probability, safety, score)
-            candidate = (rank, action, target, mean_rate)
-            if best is None or rank > best[0]:
-                best = candidate
+            candidate_table.append((
+                action, target, mean_rate, lower_rate, hit_probability,
+                loop_probability, metal_hit_probability, metal_loop_probability,
+                roof_block_probability, safety, route_stats,
+            ))
 
-        if best is not None:
+        if candidate_table:
+            # The objective is the complete simulated flight's total points
+            # divided by elapsed time. A roof-and-brick loop only breaks an
+            # exact score-rate tie; it cannot displace a better direct shot.
+            can_seek_loop = remaining > self.MIN_BRICKS_FOR_LOOP
+            loop_probability_threshold = (
+                self.LEVEL_ONE_LOOP_PROBABILITY
+                if domain.level_number == 1 else self.LOOP_SEEK_PROBABILITY
+            )
+            best = max(
+                candidate_table,
+                key=lambda row: (
+                    row[2], can_seek_loop and row[8] >= loop_probability_threshold,
+                    row[8] if can_seek_loop and row[8] >= loop_probability_threshold else 0.0,
+                    row[9],
+                ),
+            )
             self._last_planning_seconds = time.perf_counter() - planning_started
-            return best[1], best[2], best[3]
+            readable_table = []
+            for row in candidate_table:
+                routes = []
+                for (metal_index, target_index), (count, points, seconds) in sorted(
+                    row[10].items(), key=lambda item: (item[1][0], item[1][1]), reverse=True
+                )[:3]:
+                    metal = state.bricks[metal_index]
+                    target_brick = state.bricks[target_index]
+                    routes.append(
+                        f"M{metal_index}@({metal.x:.0f},{metal.y:.0f})"
+                        f"->B{target_index}@({target_brick.x:.0f},{target_brick.y:.0f})"
+                        f"[{target_brick.points}pts,{target_brick.health}hp]"
+                        f" p={count / self.ANGLE_SAMPLES:.0%}"
+                        f" pts/s={points / max(0.05, seconds):.2f}"
+                    )
+                readable_table.append((
+                    row[0], round(row[1], 1), round(row[2], 2), round(row[3], 2),
+                    round(row[4], 2), round(row[5], 2), round(row[6], 2),
+                    round(row[7], 2), round(row[8], 2), round(row[9], 2), routes,
+                ))
+            logging.info(
+                "Agent2 por zona (ação, alvo, pts/s, cauda, acerto, loop, toque metal, loop metal, loop teto+tijolo, segurança, rotas metal→tijolo): %s",
+                readable_table,
+            )
+            if can_seek_loop and best[8] >= loop_probability_threshold:
+                logging.info(
+                    "Escolhida trajetória em loop teto+tijolo no melhor pts/s: probabilidade %.0f%%, %.2f pts/s",
+                    100 * best[8], best[2],
+                )
+            return best[0], best[1], best[2]
 
         # No offensive zone is safely reachable. Make the best catch possible.
         catch = min(paddle_max, max(0.0, landing_x - domain.paddle_width / 2))

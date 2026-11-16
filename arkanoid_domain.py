@@ -78,6 +78,11 @@ class ArkanoidSearchDomain(SearchDomain):
         fps: int = 30,
         paddle_step_distance: float = 28.0,
         max_flight_seconds: float = 30.0,
+        paddle_left_ratio: float = 0.3333,
+        paddle_right_ratio: float = 0.3333,
+        center_angle_half_width: float = 8.0,
+        side_angle: float = 45.0,
+        side_angle_half_width: float = 15.0,
     ) -> None:
         super().__init__()
         self.width = width
@@ -91,6 +96,11 @@ class ArkanoidSearchDomain(SearchDomain):
         self.fps = fps
         self.paddle_step_distance = paddle_step_distance
         self.max_flight_seconds = max_flight_seconds
+        self.paddle_left_ratio = paddle_left_ratio
+        self.paddle_right_ratio = paddle_right_ratio
+        self.center_angle_half_width = center_angle_half_width
+        self.side_angle = side_angle
+        self.side_angle_half_width = side_angle_half_width
         self._initial_score = 0
         self._initial_level_time = 0.0
         self.level_number = 1
@@ -101,6 +111,7 @@ class ArkanoidSearchDomain(SearchDomain):
     @classmethod
     def from_observation(cls, observation: dict[str, Any]) -> tuple[ArkanoidSearchDomain, ArkanoidState]:
         """Build a domain and starting node from a server state dictionary."""
+        angles = observation.get("paddle_angles", {})
         domain = cls(
             width=float(observation.get("width", 600)),
             height=float(observation.get("height", 800)),
@@ -109,6 +120,13 @@ class ArkanoidSearchDomain(SearchDomain):
             paddle_width=float(observation["paddle_width"]),
             ball_radius=float(observation.get("ball_radius", 6)),
             ball_speed=float(observation.get("ball_speed", 400)),
+            fps=int(observation.get("fps", 30)),
+            paddle_step_distance=float(observation.get("paddle_step_distance", 28)),
+            paddle_left_ratio=float(observation.get("paddle_left_ratio", 0.3333)),
+            paddle_right_ratio=float(observation.get("paddle_right_ratio", 0.3333)),
+            center_angle_half_width=float(angles.get("alpha_deg", 8.0)),
+            side_angle=float(angles.get("side_deg", 45.0)),
+            side_angle_half_width=float(angles.get("beta_deg", 15.0)),
         )
         domain._initial_score = int(observation.get("level_score", observation.get("score", 0)))
         domain.level_number = int(observation.get("stage", observation.get("level", 1)))
@@ -135,6 +153,16 @@ class ArkanoidSearchDomain(SearchDomain):
             lives=int(observation.get("lives", 3)),
         )
         return domain, state
+
+    def angle_parameters(self, action: str) -> tuple[float, float]:
+        """Return the configured triangular angle mode and half-width."""
+        if action == self.CENTER:
+            return 0.0, self.center_angle_half_width
+        if action == self.LEFT:
+            return -self.side_angle, self.side_angle_half_width
+        if action == self.RIGHT:
+            return self.side_angle, self.side_angle_half_width
+        raise ValueError(f"Unknown rebound action: {action}")
 
     def actions(self, state: ArkanoidState) -> list[str]:
         """Return reachable rebound actions that preserve the current life."""
@@ -198,11 +226,7 @@ class ArkanoidSearchDomain(SearchDomain):
         fraction, _ = self.REGIONS[action]
         target_x = min(self.width - self.paddle_width,
                        max(0.0, landing_x - fraction * self.paddle_width))
-        if action == self.CENTER:
-            mode, half_width = 0.0, self.CENTER_HALF_ANGLE
-        else:
-            mode = -self.SIDE_ANGLE if action == self.LEFT else self.SIDE_ANGLE
-            half_width = self.SIDE_HALF_ANGLE
+        mode, half_width = self.angle_parameters(action)
 
         samples = 13 if state.remaining_bricks <= 10 else 7
         outcomes: list[tuple[int, float]] = []
@@ -489,9 +513,7 @@ class ArkanoidSearchDomain(SearchDomain):
         self, state: ArkanoidState, action: str, landing_x: float, inbound_seconds: float
     ) -> float:
         """Estimate points/second over a sampled paddle-to-paddle flight."""
-        fraction, mode = self.REGIONS[action]
-        del fraction  # The landing coordinate is already supplied by the caller.
-        half_width = self.CENTER_HALF_ANGLE if action == self.CENTER else self.SIDE_HALF_ANGLE
+        mode, half_width = self.angle_parameters(action)
         samples = 7 if state.remaining_bricks <= 10 else 5
         row_height = 24.0
         brick_rows: dict[int, list[int]] = {}
@@ -527,6 +549,25 @@ class ArkanoidSearchDomain(SearchDomain):
         row_height: float,
     ) -> tuple[int, float]:
         """Simulate one sampled rebound until it returns to the paddle."""
+        return self._simulate_shot_details(
+            state, start_x, angle_deg, brick_rows, row_height
+        )
+
+    def _simulate_shot_details(
+        self,
+        state: ArkanoidState,
+        start_x: float,
+        angle_deg: float,
+        brick_rows: dict[int, list[int]],
+        row_height: float,
+    ) -> tuple[int, float]:
+        """Return points and flight time for one sampled rebound.
+
+        The simulator advances directly from one swept collision to the next,
+        using the same expanded-brick collision model for both dense and sparse
+        boards. If a closed path repeats before returning to the paddle, charge
+        the full flight horizon so trapped trajectories do not inflate points/s.
+        """
         x, y = start_x, self.paddle_y - self.ball_radius
         angle = math.radians(angle_deg)
         vx = self.ball_speed * math.sin(angle)
@@ -536,47 +577,76 @@ class ArkanoidSearchDomain(SearchDomain):
         remaining_brick_count = state.remaining_bricks
         elapsed = 0.0
         last_hit: int | None = None
-        dt = 1.0 / (self.fps * 2)
         ceiling = self.ceiling_y + self.ball_radius
-        max_ticks = max(1, int(self.max_flight_seconds * self.fps * 2))
+        paddle_plane = self.paddle_y - self.ball_radius
+        # Once a destructible brick changes health, old positions no longer
+        # describe the same physical state. Clear cycle history at that point.
+        seen_states: set[tuple[float, float, int, int, int | None]] = set()
 
-        for _ in range(max_ticks):
-            elapsed += dt
-            dx, dy = vx * dt, vy * dt
-            nx, ny = x + dx, y + dy
-            if nx < self.ball_radius:
-                nx, vx = 2 * self.ball_radius - nx, abs(vx)
-            elif nx > self.width - self.ball_radius:
-                nx, vx = 2 * (self.width - self.ball_radius) - nx, -abs(vx)
-            if ny < ceiling:
-                ny, vy = 2 * ceiling - ny, abs(vy)
+        for _ in range(2048):
+            if last_hit is not None:
+                previous = bricks[last_hit]
+                if not (
+                    previous.x - self.ball_radius <= x <= previous.x + previous.width + self.ball_radius
+                    and previous.y - self.ball_radius <= y <= previous.y + previous.height + self.ball_radius
+                ):
+                    last_hit = None
 
-            if remaining_brick_count <= 10:
-                first_row = math.floor((min(y, y + dy) - self.ball_radius) / row_height)
-                last_row = math.floor((max(y, y + dy) + self.ball_radius) / row_height)
-                candidate_indices = {
-                    index for row in range(first_row, last_row + 1)
-                    for index in brick_rows.get(row, ())
-                }
-                impact = self._first_brick_collision(
-                    x, y, dx, dy, vx, vy, bricks, last_hit, candidate_indices
-                )
+            boundary_time = self.max_flight_seconds - elapsed
+            boundary_kind = "limit"
+            if vx > 0.0:
+                candidate = (self.width - self.ball_radius - x) / vx
+                if 0.0 <= candidate < boundary_time:
+                    boundary_time, boundary_kind = candidate, "wall"
+            elif vx < 0.0:
+                candidate = (self.ball_radius - x) / vx
+                if 0.0 <= candidate < boundary_time:
+                    boundary_time, boundary_kind = candidate, "wall"
+
+            if vy < 0.0:
+                candidate = (ceiling - y) / vy
+                if 0.0 <= candidate < boundary_time:
+                    boundary_time, boundary_kind = candidate, "ceiling"
+            elif vy > 0.0:
+                candidate = (paddle_plane - y) / vy
+                if 0.0 <= candidate < boundary_time:
+                    boundary_time, boundary_kind = candidate, "paddle"
+
+            if boundary_time <= 1e-12 and boundary_kind == "limit":
+                return points, self.max_flight_seconds
+
+            end_x = x + vx * boundary_time
+            end_y = y + vy * boundary_time
+            first_row = math.floor(min(y, end_y) / row_height) - 1
+            last_row = math.floor(max(y, end_y) / row_height) + 2
+            candidate_indices = {
+                index
+                for row in range(first_row, last_row + 1)
+                for index in brick_rows.get(row, ())
+            }
+            impact = self._first_brick_collision(
+                x, y, vx * boundary_time, vy * boundary_time,
+                vx, vy, bricks, last_hit, candidate_indices,
+            )
+
+            if impact is None:
+                x, y = end_x, end_y
+                elapsed += boundary_time
+                if boundary_kind == "wall":
+                    vx = -vx
+                    x = min(self.width - self.ball_radius, max(self.ball_radius, x))
+                elif boundary_kind == "ceiling":
+                    vy = -vy
+                    y = ceiling
+                elif boundary_kind == "paddle":
+                    return points, elapsed
+                else:
+                    return points, self.max_flight_seconds
             else:
-                hit_index = next((
-                    index for index in brick_rows.get(math.floor(ny / row_height), ())
-                    if index != last_hit
-                    and (bricks[index].health > 0 or bricks[index].indestructible)
-                    and bricks[index].x - self.ball_radius <= nx <= bricks[index].x + bricks[index].width + self.ball_radius
-                    and bricks[index].y - self.ball_radius <= ny <= bricks[index].y + bricks[index].height + self.ball_radius
-                ), None)
-                impact = None
-                if hit_index is not None:
-                    brick = bricks[hit_index]
-                    face = "x" if x < brick.x - self.ball_radius or x > brick.x + brick.width + self.ball_radius else "y"
-                    impact = (hit_index, 1.0, face)
-            hit_index = impact[0] if impact is not None else None
-            if impact is not None:
                 hit_index, fraction, face = impact
+                x += vx * boundary_time * fraction
+                y += vy * boundary_time * fraction
+                elapsed += boundary_time * fraction
                 brick = bricks[hit_index]
                 if not brick.indestructible:
                     health = brick.health - 1
@@ -584,33 +654,30 @@ class ArkanoidSearchDomain(SearchDomain):
                         brick.x, brick.y, brick.width, brick.height,
                         health, brick.points, brick.indestructible,
                     )
+                    # A changed board invalidates any previously seen cycle.
+                    seen_states.clear()
                     if health <= 0:
                         points += brick.points
                         remaining_brick_count -= 1
-                x += dx * fraction
-                y += dy * fraction
+                        if remaining_brick_count <= 0:
+                            return points, elapsed
                 if face == "x":
                     vx = -vx
+                    x += math.copysign(0.01, vx)
                 else:
                     vy = -vy
-                remaining = dt * (1.0 - fraction)
-                nx, ny = x + vx * remaining, y + vy * remaining
+                    y += math.copysign(0.01, vy)
                 last_hit = hit_index
-            elif last_hit is not None:
-                previous = bricks[last_hit]
-                if not (
-                    previous.x - self.ball_radius <= nx <= previous.x + previous.width + self.ball_radius
-                    and previous.y - self.ball_radius <= ny <= previous.y + previous.height + self.ball_radius
-                ):
-                    last_hit = None
 
-            if points >= sum(b.points for b in state.bricks if not b.indestructible and b.health > 0):
-                return points, elapsed
-            if vy > 0 and ny + self.ball_radius >= self.paddle_y:
-                return points, elapsed
-            x, y = nx, ny
+            signature = (
+                round(x, 3), round(y, 3),
+                1 if vx > 0 else -1, 1 if vy > 0 else -1, last_hit,
+            )
+            if signature in seen_states:
+                return points, self.max_flight_seconds
+            seen_states.add(signature)
 
-        return points, elapsed
+        return points, self.max_flight_seconds
 
     def result(self, state: ArkanoidState, action: str) -> ArkanoidState:
         """Apply a rebound choice and simulate the next ball flight."""
@@ -622,7 +689,8 @@ class ArkanoidSearchDomain(SearchDomain):
 
         # Aim for the selected third at the predicted paddle impact point.
         landing_x, _ = self.predict_landing(state)
-        fraction, angle_deg = self.REGIONS[action]
+        fraction, _ = self.REGIONS[action]
+        angle_deg, _ = self.angle_parameters(action)
         paddle_x = min(self.width - self.paddle_width,
                        max(0.0, landing_x - fraction * self.paddle_width))
         # Reaching the target takes time. If it cannot be reached before impact,

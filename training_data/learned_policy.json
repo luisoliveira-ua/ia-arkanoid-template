@@ -1,0 +1,1790 @@
+{
+  "version": 3,
+  "simulations": 1000000,
+  "training_samples": 800000,
+  "validation_samples": 200000,
+  "minimum_action_samples": 64,
+  "objective": "total_points / total_elapsed_seconds",
+  "features": [
+    "level",
+    "remaining_brick_bucket",
+    "landing_third"
+  ],
+  "validation": {
+    "covered_contexts": 30,
+    "random_points_per_second": 10.893504275559042,
+    "learned_points_per_second": 11.974567404733877,
+    "relative_lift": 0.0992392440328258
+  },
+  "cells": {
+    "1|11-20|2|RIGHT": {
+      "samples": 9956,
+      "mean_points_per_second": 14.18570408470397
+    },
+    "1|11-20|2|LEFT": {
+      "samples": 7331,
+      "mean_points_per_second": 15.41747156653941
+    },
+    "1|11-20|2|CENTER": {
+      "samples": 8617,
+      "mean_points_per_second": 8.981034415886143
+    },
+    "1|11-20|*|RIGHT": {
+      "samples": 28226,
+      "mean_points_per_second": 14.160426835491617
+    },
+    "1|11-20|*|CENTER": {
+      "samples": 28177,
+      "mean_points_per_second": 8.845008532301208
+    },
+    "1|11-20|*|LEFT": {
+      "samples": 28349,
+      "mean_points_per_second": 14.197090895147841
+    },
+    "1|*|2|RIGHT": {
+      "samples": 31516,
+      "mean_points_per_second": 14.102452811723472
+    },
+    "1|*|2|CENTER": {
+      "samples": 27192,
+      "mean_points_per_second": 9.722475200583498
+    },
+    "1|*|2|LEFT": {
+      "samples": 23041,
+      "mean_points_per_second": 16.47642518645434
+    },
+    "1|*|*|RIGHT": {
+      "samples": 88672,
+      "mean_points_per_second": 14.092067029318526
+    },
+    "1|*|*|LEFT": {
+      "samples": 89148,
+      "mean_points_per_second": 14.204675646027557
+    },
+    "1|*|*|CENTER": {
+      "samples": 88815,
+      "mean_points_per_second": 9.77112674920694
+    },
+    "*|11-20|*|RIGHT": {
+      "samples": 113647,
+      "mean_points_per_second": 12.178472752381683
+    },
+    "*|11-20|*|CENTER": {
+      "samples": 113902,
+      "mean_points_per_second": 8.759399972921178
+    },
+    "*|11-20|*|LEFT": {
+      "samples": 113786,
+      "mean_points_per_second": 12.198960313082413
+    },
+    "*|*|*|RIGHT": {
+      "samples": 266882,
+      "mean_points_per_second": 11.70189330721466
+    },
+    "*|*|*|CENTER": {
+      "samples": 266624,
+      "mean_points_per_second": 8.803032261940519
+    },
+    "*|*|*|LEFT": {
+      "samples": 266494,
+      "mean_points_per_second": 11.757399898659411
+    },
+    "1|11-20|0|RIGHT": {
+      "samples": 7361,
+      "mean_points_per_second": 15.137989142401013
+    },
+    "1|11-20|0|LEFT": {
+      "samples": 10134,
+      "mean_points_per_second": 14.271129173888328
+    },
+    "1|11-20|0|CENTER": {
+      "samples": 8708,
+      "mean_points_per_second": 8.942219320036738
+    },
+    "1|*|0|RIGHT": {
+      "samples": 22819,
+      "mean_points_per_second": 16.62772747725417
+    },
+    "1|*|0|CENTER": {
+      "samples": 27246,
+      "mean_points_per_second": 9.824806621170918
+    },
+    "1|*|0|LEFT": {
+      "samples": 31674,
+      "mean_points_per_second": 14.433301712288982
+    },
+    "2|11-20|1|CENTER": {
+      "samples": 18125,
+      "mean_points_per_second": 11.552073760941457
+    },
+    "2|11-20|1|LEFT": {
+      "samples": 17918,
+      "mean_points_per_second": 13.235533094733617
+    },
+    "2|11-20|1|RIGHT": {
+      "samples": 18013,
+      "mean_points_per_second": 13.344305748651747
+    },
+    "2|11-20|*|CENTER": {
+      "samples": 46417,
+      "mean_points_per_second": 10.743610791643833
+    },
+    "2|11-20|*|LEFT": {
+      "samples": 46418,
+      "mean_points_per_second": 12.71877674694127
+    },
+    "2|11-20|*|RIGHT": {
+      "samples": 46269,
+      "mean_points_per_second": 12.759976634283488
+    },
+    "2|*|1|CENTER": {
+      "samples": 34843,
+      "mean_points_per_second": 10.955610932231046
+    },
+    "2|*|1|LEFT": {
+      "samples": 34170,
+      "mean_points_per_second": 12.467658679067673
+    },
+    "2|*|1|RIGHT": {
+      "samples": 34502,
+      "mean_points_per_second": 12.484799519020317
+    },
+    "2|*|*|CENTER": {
+      "samples": 89007,
+      "mean_points_per_second": 10.222906863203288
+    },
+    "2|*|*|RIGHT": {
+      "samples": 89056,
+      "mean_points_per_second": 11.945833256955746
+    },
+    "2|*|*|LEFT": {
+      "samples": 88435,
+      "mean_points_per_second": 11.936968189080078
+    },
+    "1|0-10|1|RIGHT": {
+      "samples": 4299,
+      "mean_points_per_second": 10.250026388074952
+    },
+    "1|0-10|1|LEFT": {
+      "samples": 4314,
+      "mean_points_per_second": 10.742099446155668
+    },
+    "1|0-10|1|CENTER": {
+      "samples": 4349,
+      "mean_points_per_second": 5.938418552355849
+    },
+    "1|0-10|*|RIGHT": {
+      "samples": 11105,
+      "mean_points_per_second": 10.021557814014965
+    },
+    "1|0-10|*|LEFT": {
+      "samples": 11186,
+      "mean_points_per_second": 10.345646567464962
+    },
+    "1|0-10|*|CENTER": {
+      "samples": 11097,
+      "mean_points_per_second": 5.865206050597336
+    },
+    "1|*|1|RIGHT": {
+      "samples": 34337,
+      "mean_points_per_second": 12.310102334609109
+    },
+    "1|*|1|LEFT": {
+      "samples": 34433,
+      "mean_points_per_second": 12.395054224946898
+    },
+    "1|*|1|CENTER": {
+      "samples": 34377,
+      "mean_points_per_second": 9.767101521569218
+    },
+    "*|0-10|*|RIGHT": {
+      "samples": 47980,
+      "mean_points_per_second": 9.099887965182342
+    },
+    "*|0-10|*|LEFT": {
+      "samples": 47443,
+      "mean_points_per_second": 9.193436790384677
+    },
+    "*|0-10|*|CENTER": {
+      "samples": 47537,
+      "mean_points_per_second": 5.318851823036563
+    },
+    "2|21-30|2|RIGHT": {
+      "samples": 8031,
+      "mean_points_per_second": 12.304930805352853
+    },
+    "2|21-30|2|CENTER": {
+      "samples": 6687,
+      "mean_points_per_second": 12.758337739378366
+    },
+    "2|21-30|2|LEFT": {
+      "samples": 5688,
+      "mean_points_per_second": 12.907799909464181
+    },
+    "2|21-30|*|RIGHT": {
+      "samples": 22333,
+      "mean_points_per_second": 12.945007033710617
+    },
+    "2|21-30|*|LEFT": {
+      "samples": 21958,
+      "mean_points_per_second": 12.949706697298168
+    },
+    "2|21-30|*|CENTER": {
+      "samples": 22385,
+      "mean_points_per_second": 13.161829057220144
+    },
+    "2|*|2|RIGHT": {
+      "samples": 31678,
+      "mean_points_per_second": 11.400377755464307
+    },
+    "2|*|2|CENTER": {
+      "samples": 26932,
+      "mean_points_per_second": 9.775931977944698
+    },
+    "2|*|2|LEFT": {
+      "samples": 22832,
+      "mean_points_per_second": 11.782389966665688
+    },
+    "*|21-30|*|RIGHT": {
+      "samples": 93408,
+      "mean_points_per_second": 12.057821550127347
+    },
+    "*|21-30|*|LEFT": {
+      "samples": 93328,
+      "mean_points_per_second": 12.070015242827264
+    },
+    "*|21-30|*|CENTER": {
+      "samples": 93342,
+      "mean_points_per_second": 10.270053304126543
+    },
+    "3|21-30|2|RIGHT": {
+      "samples": 11827,
+      "mean_points_per_second": 8.124571905938746
+    },
+    "3|21-30|2|CENTER": {
+      "samples": 10285,
+      "mean_points_per_second": 7.282725573681008
+    },
+    "3|21-30|2|LEFT": {
+      "samples": 8542,
+      "mean_points_per_second": 8.958110362466114
+    },
+    "3|21-30|*|RIGHT": {
+      "samples": 33581,
+      "mean_points_per_second": 8.191666893462866
+    },
+    "3|21-30|*|CENTER": {
+      "samples": 33259,
+      "mean_points_per_second": 7.769702482779087
+    },
+    "3|21-30|*|LEFT": {
+      "samples": 33694,
+      "mean_points_per_second": 8.218222409486806
+    },
+    "3|*|2|RIGHT": {
+      "samples": 31503,
+      "mean_points_per_second": 9.156915634870272
+    },
+    "3|*|2|CENTER": {
+      "samples": 27336,
+      "mean_points_per_second": 6.023127650037104
+    },
+    "3|*|2|LEFT": {
+      "samples": 22741,
+      "mean_points_per_second": 9.218793015887757
+    },
+    "3|*|*|RIGHT": {
+      "samples": 89154,
+      "mean_points_per_second": 9.016545630020403
+    },
+    "3|*|*|LEFT": {
+      "samples": 88911,
+      "mean_points_per_second": 9.059458657037965
+    },
+    "3|*|*|CENTER": {
+      "samples": 88802,
+      "mean_points_per_second": 6.435729978364577
+    },
+    "2|11-20|0|CENTER": {
+      "samples": 14152,
+      "mean_points_per_second": 10.231957667861668
+    },
+    "2|11-20|0|RIGHT": {
+      "samples": 11833,
+      "mean_points_per_second": 12.694611228502955
+    },
+    "2|11-20|0|LEFT": {
+      "samples": 16582,
+      "mean_points_per_second": 12.304434561370615
+    },
+    "2|*|0|CENTER": {
+      "samples": 27232,
+      "mean_points_per_second": 9.761872538872737
+    },
+    "2|*|0|LEFT": {
+      "samples": 31433,
+      "mean_points_per_second": 11.486465305718053
+    },
+    "2|*|0|RIGHT": {
+      "samples": 22876,
+      "mean_points_per_second": 11.902056330761132
+    },
+    "2|21-30|1|LEFT": {
+      "samples": 8436,
+      "mean_points_per_second": 13.521307253606347
+    },
+    "2|21-30|1|RIGHT": {
+      "samples": 8542,
+      "mean_points_per_second": 13.571533135577903
+    },
+    "2|21-30|1|CENTER": {
+      "samples": 8734,
+      "mean_points_per_second": 13.843228534832628
+    },
+    "3|11-20|1|RIGHT": {
+      "samples": 15303,
+      "mean_points_per_second": 10.196137762793319
+    },
+    "3|11-20|1|LEFT": {
+      "samples": 15214,
+      "mean_points_per_second": 10.22258968892986
+    },
+    "3|11-20|1|CENTER": {
+      "samples": 15291,
+      "mean_points_per_second": 6.857472686759285
+    },
+    "3|11-20|*|RIGHT": {
+      "samples": 39152,
+      "mean_points_per_second": 10.018267049726429
+    },
+    "3|11-20|*|LEFT": {
+      "samples": 39019,
+      "mean_points_per_second": 10.086076476704177
+    },
+    "3|11-20|*|CENTER": {
+      "samples": 39308,
+      "mean_points_per_second": 6.406788585290265
+    },
+    "3|*|1|RIGHT": {
+      "samples": 34751,
+      "mean_points_per_second": 8.983393936781233
+    },
+    "3|*|1|LEFT": {
+      "samples": 34744,
+      "mean_points_per_second": 8.933873879123496
+    },
+    "3|*|1|CENTER": {
+      "samples": 34452,
+      "mean_points_per_second": 6.968845555193365
+    },
+    "3|11-20|2|RIGHT": {
+      "samples": 13830,
+      "mean_points_per_second": 10.198662027408039
+    },
+    "3|11-20|2|CENTER": {
+      "samples": 12008,
+      "mean_points_per_second": 6.017102365048161
+    },
+    "3|11-20|2|LEFT": {
+      "samples": 10003,
+      "mean_points_per_second": 9.957809922656033
+    },
+    "1|21-30|1|LEFT": {
+      "samples": 14602,
+      "mean_points_per_second": 12.2047331519046
+    },
+    "1|21-30|1|CENTER": {
+      "samples": 14603,
+      "mean_points_per_second": 10.845937161602023
+    },
+    "1|21-30|1|RIGHT": {
+      "samples": 14510,
+      "mean_points_per_second": 12.00804055497212
+    },
+    "1|21-30|*|LEFT": {
+      "samples": 37676,
+      "mean_points_per_second": 14.891268764122744
+    },
+    "1|21-30|*|RIGHT": {
+      "samples": 37494,
+      "mean_points_per_second": 14.881094145802484
+    },
+    "1|21-30|*|CENTER": {
+      "samples": 37698,
+      "mean_points_per_second": 10.80083159672425
+    },
+    "2|0-10|1|RIGHT": {
+      "samples": 7947,
+      "mean_points_per_second": 9.613562494896074
+    },
+    "2|0-10|1|CENTER": {
+      "samples": 7984,
+      "mean_points_per_second": 6.7619501233384405
+    },
+    "2|0-10|1|LEFT": {
+      "samples": 7816,
+      "mean_points_per_second": 9.802659088708493
+    },
+    "2|0-10|*|RIGHT": {
+      "samples": 20454,
+      "mean_points_per_second": 9.225499954448805
+    },
+    "2|0-10|*|CENTER": {
+      "samples": 20205,
+      "mean_points_per_second": 6.118932425750397
+    },
+    "2|0-10|*|LEFT": {
+      "samples": 20059,
+      "mean_points_per_second": 9.238640810621776
+    },
+    "1|21-30|2|RIGHT": {
+      "samples": 13398,
+      "mean_points_per_second": 14.987863515711762
+    },
+    "1|21-30|2|CENTER": {
+      "samples": 11578,
+      "mean_points_per_second": 10.674834306610515
+    },
+    "1|21-30|2|LEFT": {
+      "samples": 9811,
+      "mean_points_per_second": 18.138679926939936
+    },
+    "1|11-20|1|RIGHT": {
+      "samples": 10909,
+      "mean_points_per_second": 13.459102992295346
+    },
+    "1|11-20|1|CENTER": {
+      "samples": 10852,
+      "mean_points_per_second": 8.657673802111063
+    },
+    "1|11-20|1|LEFT": {
+      "samples": 10884,
+      "mean_points_per_second": 13.28171774730549
+    },
+    "3|11-20|0|RIGHT": {
+      "samples": 10019,
+      "mean_points_per_second": 9.502886833197502
+    },
+    "3|11-20|0|CENTER": {
+      "samples": 12009,
+      "mean_points_per_second": 6.217611690115706
+    },
+    "3|11-20|0|LEFT": {
+      "samples": 13802,
+      "mean_points_per_second": 10.029768208514623
+    },
+    "3|*|0|RIGHT": {
+      "samples": 22900,
+      "mean_points_per_second": 8.874756595974869
+    },
+    "3|*|0|CENTER": {
+      "samples": 27014,
+      "mean_points_per_second": 6.169243644555578
+    },
+    "3|*|0|LEFT": {
+      "samples": 31426,
+      "mean_points_per_second": 9.08116264119949
+    },
+    "3|21-30|0|RIGHT": {
+      "samples": 8707,
+      "mean_points_per_second": 8.864212209174337
+    },
+    "3|21-30|0|CENTER": {
+      "samples": 10005,
+      "mean_points_per_second": 7.341531496207971
+    },
+    "3|21-30|0|LEFT": {
+      "samples": 11887,
+      "mean_points_per_second": 8.256312333223624
+    },
+    "1|21-30|0|CENTER": {
+      "samples": 11517,
+      "mean_points_per_second": 10.870931606008106
+    },
+    "1|21-30|0|LEFT": {
+      "samples": 13263,
+      "mean_points_per_second": 15.259646430452776
+    },
+    "1|21-30|0|RIGHT": {
+      "samples": 9586,
+      "mean_points_per_second": 18.774888474286957
+    },
+    "2|21-30|0|LEFT": {
+      "samples": 7834,
+      "mean_points_per_second": 12.373061706557232
+    },
+    "2|21-30|0|CENTER": {
+      "samples": 6964,
+      "mean_points_per_second": 12.717964789031095
+    },
+    "2|21-30|0|RIGHT": {
+      "samples": 5760,
+      "mean_points_per_second": 12.92128142742618
+    },
+    "1|0-10|0|CENTER": {
+      "samples": 3381,
+      "mean_points_per_second": 5.872137874916114
+    },
+    "1|0-10|0|LEFT": {
+      "samples": 3948,
+      "mean_points_per_second": 10.144871943954733
+    },
+    "1|0-10|0|RIGHT": {
+      "samples": 2845,
+      "mean_points_per_second": 9.778389243965627
+    },
+    "3|0-10|0|RIGHT": {
+      "samples": 4174,
+      "mean_points_per_second": 7.452079339622716
+    },
+    "3|0-10|0|LEFT": {
+      "samples": 5737,
+      "mean_points_per_second": 8.488778043391093
+    },
+    "3|0-10|0|CENTER": {
+      "samples": 5000,
+      "mean_points_per_second": 3.829259465658699
+    },
+    "3|0-10|*|RIGHT": {
+      "samples": 16421,
+      "mean_points_per_second": 8.300790975749123
+    },
+    "3|0-10|*|LEFT": {
+      "samples": 16198,
+      "mean_points_per_second": 8.321848752429386
+    },
+    "3|0-10|*|CENTER": {
+      "samples": 16235,
+      "mean_points_per_second": 3.9510116942457256
+    },
+    "2|11-20|2|CENTER": {
+      "samples": 14140,
+      "mean_points_per_second": 10.25972069791141
+    },
+    "2|11-20|2|LEFT": {
+      "samples": 11918,
+      "mean_points_per_second": 12.540568092005476
+    },
+    "2|11-20|2|RIGHT": {
+      "samples": 16423,
+      "mean_points_per_second": 12.179102126078359
+    },
+    "3|0-10|1|LEFT": {
+      "samples": 6265,
+      "mean_points_per_second": 8.360394274421116
+    },
+    "3|0-10|1|CENTER": {
+      "samples": 6192,
+      "mean_points_per_second": 4.312312550327145
+    },
+    "3|0-10|1|RIGHT": {
+      "samples": 6401,
+      "mean_points_per_second": 8.45536542850932
+    },
+    "2|0-10|0|CENTER": {
+      "samples": 6116,
+      "mean_points_per_second": 5.680786504085058
+    },
+    "2|0-10|0|LEFT": {
+      "samples": 7017,
+      "mean_points_per_second": 8.8056293846383
+    },
+    "2|0-10|0|RIGHT": {
+      "samples": 5283,
+      "mean_points_per_second": 9.179452764984237
+    },
+    "2|0-10|2|LEFT": {
+      "samples": 5226,
+      "mean_points_per_second": 8.999003140072306
+    },
+    "2|0-10|2|RIGHT": {
+      "samples": 7224,
+      "mean_points_per_second": 8.839318840505475
+    },
+    "2|0-10|2|CENTER": {
+      "samples": 6105,
+      "mean_points_per_second": 5.752626025716164
+    },
+    "3|21-30|1|LEFT": {
+      "samples": 13265,
+      "mean_points_per_second": 7.69815464835802
+    },
+    "3|21-30|1|CENTER": {
+      "samples": 12969,
+      "mean_points_per_second": 8.491057280665785
+    },
+    "3|21-30|1|RIGHT": {
+      "samples": 13047,
+      "mean_points_per_second": 7.795389787241717
+    },
+    "1|31+|1|LEFT": {
+      "samples": 4633,
+      "mean_points_per_second": 12.533472771329672
+    },
+    "1|31+|1|CENTER": {
+      "samples": 4573,
+      "mean_points_per_second": 13.053177687383572
+    },
+    "1|31+|1|RIGHT": {
+      "samples": 4619,
+      "mean_points_per_second": 12.552738818361146
+    },
+    "1|31+|*|LEFT": {
+      "samples": 11937,
+      "mean_points_per_second": 15.930512951015379
+    },
+    "1|31+|*|RIGHT": {
+      "samples": 11847,
+      "mean_points_per_second": 15.529426364495203
+    },
+    "1|31+|*|CENTER": {
+      "samples": 11843,
+      "mean_points_per_second": 12.735847667716634
+    },
+    "*|31+|*|LEFT": {
+      "samples": 11937,
+      "mean_points_per_second": 15.930512951015379
+    },
+    "*|31+|*|RIGHT": {
+      "samples": 11847,
+      "mean_points_per_second": 15.529426364495203
+    },
+    "*|31+|*|CENTER": {
+      "samples": 11843,
+      "mean_points_per_second": 12.735847667716634
+    },
+    "1|31+|2|RIGHT": {
+      "samples": 4201,
+      "mean_points_per_second": 15.274690226183605
+    },
+    "1|31+|2|LEFT": {
+      "samples": 2975,
+      "mean_points_per_second": 20.13217379772223
+    },
+    "1|31+|2|CENTER": {
+      "samples": 3630,
+      "mean_points_per_second": 12.443924575098634
+    },
+    "1|0-10|2|RIGHT": {
+      "samples": 3961,
+      "mean_points_per_second": 9.948815416487822
+    },
+    "1|0-10|2|CENTER": {
+      "samples": 3367,
+      "mean_points_per_second": 5.7629610800119995
+    },
+    "1|0-10|2|LEFT": {
+      "samples": 2924,
+      "mean_points_per_second": 10.028376348312703
+    },
+    "1|31+|0|RIGHT": {
+      "samples": 3027,
+      "mean_points_per_second": 20.06177420640842
+    },
+    "1|31+|0|CENTER": {
+      "samples": 3640,
+      "mean_points_per_second": 12.634912324965685
+    },
+    "1|31+|0|LEFT": {
+      "samples": 4329,
+      "mean_points_per_second": 16.424780829577017
+    },
+    "3|0-10|2|RIGHT": {
+      "samples": 5846,
+      "mean_points_per_second": 8.737855696845466
+    },
+    "3|0-10|2|CENTER": {
+      "samples": 5043,
+      "mean_points_per_second": 3.6167356409301528
+    },
+    "3|0-10|2|LEFT": {
+      "samples": 4196,
+      "mean_points_per_second": 8.03841329159452
+    }
+  },
+  "policy": {
+    "1|11-20|2": {
+      "action": "LEFT",
+      "samples": 7331,
+      "mean_points_per_second": 15.41747156653941,
+      "action_values": {
+        "RIGHT": {
+          "samples": 9956,
+          "mean_points_per_second": 14.18570408470397
+        },
+        "LEFT": {
+          "samples": 7331,
+          "mean_points_per_second": 15.41747156653941
+        },
+        "CENTER": {
+          "samples": 8617,
+          "mean_points_per_second": 8.981034415886143
+        }
+      }
+    },
+    "1|11-20|*": {
+      "action": "LEFT",
+      "samples": 28349,
+      "mean_points_per_second": 14.197090895147841,
+      "action_values": {
+        "RIGHT": {
+          "samples": 28226,
+          "mean_points_per_second": 14.160426835491617
+        },
+        "CENTER": {
+          "samples": 28177,
+          "mean_points_per_second": 8.845008532301208
+        },
+        "LEFT": {
+          "samples": 28349,
+          "mean_points_per_second": 14.197090895147841
+        }
+      }
+    },
+    "1|*|2": {
+      "action": "LEFT",
+      "samples": 23041,
+      "mean_points_per_second": 16.47642518645434,
+      "action_values": {
+        "RIGHT": {
+          "samples": 31516,
+          "mean_points_per_second": 14.102452811723472
+        },
+        "CENTER": {
+          "samples": 27192,
+          "mean_points_per_second": 9.722475200583498
+        },
+        "LEFT": {
+          "samples": 23041,
+          "mean_points_per_second": 16.47642518645434
+        }
+      }
+    },
+    "1|*|*": {
+      "action": "LEFT",
+      "samples": 89148,
+      "mean_points_per_second": 14.204675646027557,
+      "action_values": {
+        "RIGHT": {
+          "samples": 88672,
+          "mean_points_per_second": 14.092067029318526
+        },
+        "LEFT": {
+          "samples": 89148,
+          "mean_points_per_second": 14.204675646027557
+        },
+        "CENTER": {
+          "samples": 88815,
+          "mean_points_per_second": 9.77112674920694
+        }
+      }
+    },
+    "*|11-20|*": {
+      "action": "LEFT",
+      "samples": 113786,
+      "mean_points_per_second": 12.198960313082413,
+      "action_values": {
+        "RIGHT": {
+          "samples": 113647,
+          "mean_points_per_second": 12.178472752381683
+        },
+        "CENTER": {
+          "samples": 113902,
+          "mean_points_per_second": 8.759399972921178
+        },
+        "LEFT": {
+          "samples": 113786,
+          "mean_points_per_second": 12.198960313082413
+        }
+      }
+    },
+    "*|*|*": {
+      "action": "LEFT",
+      "samples": 266494,
+      "mean_points_per_second": 11.757399898659411,
+      "action_values": {
+        "RIGHT": {
+          "samples": 266882,
+          "mean_points_per_second": 11.70189330721466
+        },
+        "CENTER": {
+          "samples": 266624,
+          "mean_points_per_second": 8.803032261940519
+        },
+        "LEFT": {
+          "samples": 266494,
+          "mean_points_per_second": 11.757399898659411
+        }
+      }
+    },
+    "1|11-20|0": {
+      "action": "RIGHT",
+      "samples": 7361,
+      "mean_points_per_second": 15.137989142401013,
+      "action_values": {
+        "RIGHT": {
+          "samples": 7361,
+          "mean_points_per_second": 15.137989142401013
+        },
+        "LEFT": {
+          "samples": 10134,
+          "mean_points_per_second": 14.271129173888328
+        },
+        "CENTER": {
+          "samples": 8708,
+          "mean_points_per_second": 8.942219320036738
+        }
+      }
+    },
+    "1|*|0": {
+      "action": "RIGHT",
+      "samples": 22819,
+      "mean_points_per_second": 16.62772747725417,
+      "action_values": {
+        "RIGHT": {
+          "samples": 22819,
+          "mean_points_per_second": 16.62772747725417
+        },
+        "CENTER": {
+          "samples": 27246,
+          "mean_points_per_second": 9.824806621170918
+        },
+        "LEFT": {
+          "samples": 31674,
+          "mean_points_per_second": 14.433301712288982
+        }
+      }
+    },
+    "2|11-20|1": {
+      "action": "RIGHT",
+      "samples": 18013,
+      "mean_points_per_second": 13.344305748651747,
+      "action_values": {
+        "CENTER": {
+          "samples": 18125,
+          "mean_points_per_second": 11.552073760941457
+        },
+        "LEFT": {
+          "samples": 17918,
+          "mean_points_per_second": 13.235533094733617
+        },
+        "RIGHT": {
+          "samples": 18013,
+          "mean_points_per_second": 13.344305748651747
+        }
+      }
+    },
+    "2|11-20|*": {
+      "action": "RIGHT",
+      "samples": 46269,
+      "mean_points_per_second": 12.759976634283488,
+      "action_values": {
+        "CENTER": {
+          "samples": 46417,
+          "mean_points_per_second": 10.743610791643833
+        },
+        "LEFT": {
+          "samples": 46418,
+          "mean_points_per_second": 12.71877674694127
+        },
+        "RIGHT": {
+          "samples": 46269,
+          "mean_points_per_second": 12.759976634283488
+        }
+      }
+    },
+    "2|*|1": {
+      "action": "RIGHT",
+      "samples": 34502,
+      "mean_points_per_second": 12.484799519020317,
+      "action_values": {
+        "CENTER": {
+          "samples": 34843,
+          "mean_points_per_second": 10.955610932231046
+        },
+        "LEFT": {
+          "samples": 34170,
+          "mean_points_per_second": 12.467658679067673
+        },
+        "RIGHT": {
+          "samples": 34502,
+          "mean_points_per_second": 12.484799519020317
+        }
+      }
+    },
+    "2|*|*": {
+      "action": "RIGHT",
+      "samples": 89056,
+      "mean_points_per_second": 11.945833256955746,
+      "action_values": {
+        "CENTER": {
+          "samples": 89007,
+          "mean_points_per_second": 10.222906863203288
+        },
+        "RIGHT": {
+          "samples": 89056,
+          "mean_points_per_second": 11.945833256955746
+        },
+        "LEFT": {
+          "samples": 88435,
+          "mean_points_per_second": 11.936968189080078
+        }
+      }
+    },
+    "1|0-10|1": {
+      "action": "LEFT",
+      "samples": 4314,
+      "mean_points_per_second": 10.742099446155668,
+      "action_values": {
+        "RIGHT": {
+          "samples": 4299,
+          "mean_points_per_second": 10.250026388074952
+        },
+        "LEFT": {
+          "samples": 4314,
+          "mean_points_per_second": 10.742099446155668
+        },
+        "CENTER": {
+          "samples": 4349,
+          "mean_points_per_second": 5.938418552355849
+        }
+      }
+    },
+    "1|0-10|*": {
+      "action": "LEFT",
+      "samples": 11186,
+      "mean_points_per_second": 10.345646567464962,
+      "action_values": {
+        "RIGHT": {
+          "samples": 11105,
+          "mean_points_per_second": 10.021557814014965
+        },
+        "LEFT": {
+          "samples": 11186,
+          "mean_points_per_second": 10.345646567464962
+        },
+        "CENTER": {
+          "samples": 11097,
+          "mean_points_per_second": 5.865206050597336
+        }
+      }
+    },
+    "1|*|1": {
+      "action": "LEFT",
+      "samples": 34433,
+      "mean_points_per_second": 12.395054224946898,
+      "action_values": {
+        "RIGHT": {
+          "samples": 34337,
+          "mean_points_per_second": 12.310102334609109
+        },
+        "LEFT": {
+          "samples": 34433,
+          "mean_points_per_second": 12.395054224946898
+        },
+        "CENTER": {
+          "samples": 34377,
+          "mean_points_per_second": 9.767101521569218
+        }
+      }
+    },
+    "*|0-10|*": {
+      "action": "LEFT",
+      "samples": 47443,
+      "mean_points_per_second": 9.193436790384677,
+      "action_values": {
+        "RIGHT": {
+          "samples": 47980,
+          "mean_points_per_second": 9.099887965182342
+        },
+        "LEFT": {
+          "samples": 47443,
+          "mean_points_per_second": 9.193436790384677
+        },
+        "CENTER": {
+          "samples": 47537,
+          "mean_points_per_second": 5.318851823036563
+        }
+      }
+    },
+    "2|21-30|2": {
+      "action": "LEFT",
+      "samples": 5688,
+      "mean_points_per_second": 12.907799909464181,
+      "action_values": {
+        "RIGHT": {
+          "samples": 8031,
+          "mean_points_per_second": 12.304930805352853
+        },
+        "CENTER": {
+          "samples": 6687,
+          "mean_points_per_second": 12.758337739378366
+        },
+        "LEFT": {
+          "samples": 5688,
+          "mean_points_per_second": 12.907799909464181
+        }
+      }
+    },
+    "2|21-30|*": {
+      "action": "CENTER",
+      "samples": 22385,
+      "mean_points_per_second": 13.161829057220144,
+      "action_values": {
+        "RIGHT": {
+          "samples": 22333,
+          "mean_points_per_second": 12.945007033710617
+        },
+        "LEFT": {
+          "samples": 21958,
+          "mean_points_per_second": 12.949706697298168
+        },
+        "CENTER": {
+          "samples": 22385,
+          "mean_points_per_second": 13.161829057220144
+        }
+      }
+    },
+    "2|*|2": {
+      "action": "LEFT",
+      "samples": 22832,
+      "mean_points_per_second": 11.782389966665688,
+      "action_values": {
+        "RIGHT": {
+          "samples": 31678,
+          "mean_points_per_second": 11.400377755464307
+        },
+        "CENTER": {
+          "samples": 26932,
+          "mean_points_per_second": 9.775931977944698
+        },
+        "LEFT": {
+          "samples": 22832,
+          "mean_points_per_second": 11.782389966665688
+        }
+      }
+    },
+    "*|21-30|*": {
+      "action": "LEFT",
+      "samples": 93328,
+      "mean_points_per_second": 12.070015242827264,
+      "action_values": {
+        "RIGHT": {
+          "samples": 93408,
+          "mean_points_per_second": 12.057821550127347
+        },
+        "LEFT": {
+          "samples": 93328,
+          "mean_points_per_second": 12.070015242827264
+        },
+        "CENTER": {
+          "samples": 93342,
+          "mean_points_per_second": 10.270053304126543
+        }
+      }
+    },
+    "3|21-30|2": {
+      "action": "LEFT",
+      "samples": 8542,
+      "mean_points_per_second": 8.958110362466114,
+      "action_values": {
+        "RIGHT": {
+          "samples": 11827,
+          "mean_points_per_second": 8.124571905938746
+        },
+        "CENTER": {
+          "samples": 10285,
+          "mean_points_per_second": 7.282725573681008
+        },
+        "LEFT": {
+          "samples": 8542,
+          "mean_points_per_second": 8.958110362466114
+        }
+      }
+    },
+    "3|21-30|*": {
+      "action": "LEFT",
+      "samples": 33694,
+      "mean_points_per_second": 8.218222409486806,
+      "action_values": {
+        "RIGHT": {
+          "samples": 33581,
+          "mean_points_per_second": 8.191666893462866
+        },
+        "CENTER": {
+          "samples": 33259,
+          "mean_points_per_second": 7.769702482779087
+        },
+        "LEFT": {
+          "samples": 33694,
+          "mean_points_per_second": 8.218222409486806
+        }
+      }
+    },
+    "3|*|2": {
+      "action": "LEFT",
+      "samples": 22741,
+      "mean_points_per_second": 9.218793015887757,
+      "action_values": {
+        "RIGHT": {
+          "samples": 31503,
+          "mean_points_per_second": 9.156915634870272
+        },
+        "CENTER": {
+          "samples": 27336,
+          "mean_points_per_second": 6.023127650037104
+        },
+        "LEFT": {
+          "samples": 22741,
+          "mean_points_per_second": 9.218793015887757
+        }
+      }
+    },
+    "3|*|*": {
+      "action": "LEFT",
+      "samples": 88911,
+      "mean_points_per_second": 9.059458657037965,
+      "action_values": {
+        "RIGHT": {
+          "samples": 89154,
+          "mean_points_per_second": 9.016545630020403
+        },
+        "LEFT": {
+          "samples": 88911,
+          "mean_points_per_second": 9.059458657037965
+        },
+        "CENTER": {
+          "samples": 88802,
+          "mean_points_per_second": 6.435729978364577
+        }
+      }
+    },
+    "2|11-20|0": {
+      "action": "RIGHT",
+      "samples": 11833,
+      "mean_points_per_second": 12.694611228502955,
+      "action_values": {
+        "CENTER": {
+          "samples": 14152,
+          "mean_points_per_second": 10.231957667861668
+        },
+        "RIGHT": {
+          "samples": 11833,
+          "mean_points_per_second": 12.694611228502955
+        },
+        "LEFT": {
+          "samples": 16582,
+          "mean_points_per_second": 12.304434561370615
+        }
+      }
+    },
+    "2|*|0": {
+      "action": "RIGHT",
+      "samples": 22876,
+      "mean_points_per_second": 11.902056330761132,
+      "action_values": {
+        "CENTER": {
+          "samples": 27232,
+          "mean_points_per_second": 9.761872538872737
+        },
+        "LEFT": {
+          "samples": 31433,
+          "mean_points_per_second": 11.486465305718053
+        },
+        "RIGHT": {
+          "samples": 22876,
+          "mean_points_per_second": 11.902056330761132
+        }
+      }
+    },
+    "2|21-30|1": {
+      "action": "CENTER",
+      "samples": 8734,
+      "mean_points_per_second": 13.843228534832628,
+      "action_values": {
+        "LEFT": {
+          "samples": 8436,
+          "mean_points_per_second": 13.521307253606347
+        },
+        "RIGHT": {
+          "samples": 8542,
+          "mean_points_per_second": 13.571533135577903
+        },
+        "CENTER": {
+          "samples": 8734,
+          "mean_points_per_second": 13.843228534832628
+        }
+      }
+    },
+    "3|11-20|1": {
+      "action": "LEFT",
+      "samples": 15214,
+      "mean_points_per_second": 10.22258968892986,
+      "action_values": {
+        "RIGHT": {
+          "samples": 15303,
+          "mean_points_per_second": 10.196137762793319
+        },
+        "LEFT": {
+          "samples": 15214,
+          "mean_points_per_second": 10.22258968892986
+        },
+        "CENTER": {
+          "samples": 15291,
+          "mean_points_per_second": 6.857472686759285
+        }
+      }
+    },
+    "3|11-20|*": {
+      "action": "LEFT",
+      "samples": 39019,
+      "mean_points_per_second": 10.086076476704177,
+      "action_values": {
+        "RIGHT": {
+          "samples": 39152,
+          "mean_points_per_second": 10.018267049726429
+        },
+        "LEFT": {
+          "samples": 39019,
+          "mean_points_per_second": 10.086076476704177
+        },
+        "CENTER": {
+          "samples": 39308,
+          "mean_points_per_second": 6.406788585290265
+        }
+      }
+    },
+    "3|*|1": {
+      "action": "RIGHT",
+      "samples": 34751,
+      "mean_points_per_second": 8.983393936781233,
+      "action_values": {
+        "RIGHT": {
+          "samples": 34751,
+          "mean_points_per_second": 8.983393936781233
+        },
+        "LEFT": {
+          "samples": 34744,
+          "mean_points_per_second": 8.933873879123496
+        },
+        "CENTER": {
+          "samples": 34452,
+          "mean_points_per_second": 6.968845555193365
+        }
+      }
+    },
+    "3|11-20|2": {
+      "action": "RIGHT",
+      "samples": 13830,
+      "mean_points_per_second": 10.198662027408039,
+      "action_values": {
+        "RIGHT": {
+          "samples": 13830,
+          "mean_points_per_second": 10.198662027408039
+        },
+        "CENTER": {
+          "samples": 12008,
+          "mean_points_per_second": 6.017102365048161
+        },
+        "LEFT": {
+          "samples": 10003,
+          "mean_points_per_second": 9.957809922656033
+        }
+      }
+    },
+    "1|21-30|1": {
+      "action": "LEFT",
+      "samples": 14602,
+      "mean_points_per_second": 12.2047331519046,
+      "action_values": {
+        "LEFT": {
+          "samples": 14602,
+          "mean_points_per_second": 12.2047331519046
+        },
+        "CENTER": {
+          "samples": 14603,
+          "mean_points_per_second": 10.845937161602023
+        },
+        "RIGHT": {
+          "samples": 14510,
+          "mean_points_per_second": 12.00804055497212
+        }
+      }
+    },
+    "1|21-30|*": {
+      "action": "LEFT",
+      "samples": 37676,
+      "mean_points_per_second": 14.891268764122744,
+      "action_values": {
+        "LEFT": {
+          "samples": 37676,
+          "mean_points_per_second": 14.891268764122744
+        },
+        "RIGHT": {
+          "samples": 37494,
+          "mean_points_per_second": 14.881094145802484
+        },
+        "CENTER": {
+          "samples": 37698,
+          "mean_points_per_second": 10.80083159672425
+        }
+      }
+    },
+    "2|0-10|1": {
+      "action": "LEFT",
+      "samples": 7816,
+      "mean_points_per_second": 9.802659088708493,
+      "action_values": {
+        "RIGHT": {
+          "samples": 7947,
+          "mean_points_per_second": 9.613562494896074
+        },
+        "CENTER": {
+          "samples": 7984,
+          "mean_points_per_second": 6.7619501233384405
+        },
+        "LEFT": {
+          "samples": 7816,
+          "mean_points_per_second": 9.802659088708493
+        }
+      }
+    },
+    "2|0-10|*": {
+      "action": "LEFT",
+      "samples": 20059,
+      "mean_points_per_second": 9.238640810621776,
+      "action_values": {
+        "RIGHT": {
+          "samples": 20454,
+          "mean_points_per_second": 9.225499954448805
+        },
+        "CENTER": {
+          "samples": 20205,
+          "mean_points_per_second": 6.118932425750397
+        },
+        "LEFT": {
+          "samples": 20059,
+          "mean_points_per_second": 9.238640810621776
+        }
+      }
+    },
+    "1|21-30|2": {
+      "action": "LEFT",
+      "samples": 9811,
+      "mean_points_per_second": 18.138679926939936,
+      "action_values": {
+        "RIGHT": {
+          "samples": 13398,
+          "mean_points_per_second": 14.987863515711762
+        },
+        "CENTER": {
+          "samples": 11578,
+          "mean_points_per_second": 10.674834306610515
+        },
+        "LEFT": {
+          "samples": 9811,
+          "mean_points_per_second": 18.138679926939936
+        }
+      }
+    },
+    "1|11-20|1": {
+      "action": "RIGHT",
+      "samples": 10909,
+      "mean_points_per_second": 13.459102992295346,
+      "action_values": {
+        "RIGHT": {
+          "samples": 10909,
+          "mean_points_per_second": 13.459102992295346
+        },
+        "CENTER": {
+          "samples": 10852,
+          "mean_points_per_second": 8.657673802111063
+        },
+        "LEFT": {
+          "samples": 10884,
+          "mean_points_per_second": 13.28171774730549
+        }
+      }
+    },
+    "3|11-20|0": {
+      "action": "LEFT",
+      "samples": 13802,
+      "mean_points_per_second": 10.029768208514623,
+      "action_values": {
+        "RIGHT": {
+          "samples": 10019,
+          "mean_points_per_second": 9.502886833197502
+        },
+        "CENTER": {
+          "samples": 12009,
+          "mean_points_per_second": 6.217611690115706
+        },
+        "LEFT": {
+          "samples": 13802,
+          "mean_points_per_second": 10.029768208514623
+        }
+      }
+    },
+    "3|*|0": {
+      "action": "LEFT",
+      "samples": 31426,
+      "mean_points_per_second": 9.08116264119949,
+      "action_values": {
+        "RIGHT": {
+          "samples": 22900,
+          "mean_points_per_second": 8.874756595974869
+        },
+        "CENTER": {
+          "samples": 27014,
+          "mean_points_per_second": 6.169243644555578
+        },
+        "LEFT": {
+          "samples": 31426,
+          "mean_points_per_second": 9.08116264119949
+        }
+      }
+    },
+    "3|21-30|0": {
+      "action": "RIGHT",
+      "samples": 8707,
+      "mean_points_per_second": 8.864212209174337,
+      "action_values": {
+        "RIGHT": {
+          "samples": 8707,
+          "mean_points_per_second": 8.864212209174337
+        },
+        "CENTER": {
+          "samples": 10005,
+          "mean_points_per_second": 7.341531496207971
+        },
+        "LEFT": {
+          "samples": 11887,
+          "mean_points_per_second": 8.256312333223624
+        }
+      }
+    },
+    "1|21-30|0": {
+      "action": "RIGHT",
+      "samples": 9586,
+      "mean_points_per_second": 18.774888474286957,
+      "action_values": {
+        "CENTER": {
+          "samples": 11517,
+          "mean_points_per_second": 10.870931606008106
+        },
+        "LEFT": {
+          "samples": 13263,
+          "mean_points_per_second": 15.259646430452776
+        },
+        "RIGHT": {
+          "samples": 9586,
+          "mean_points_per_second": 18.774888474286957
+        }
+      }
+    },
+    "2|21-30|0": {
+      "action": "RIGHT",
+      "samples": 5760,
+      "mean_points_per_second": 12.92128142742618,
+      "action_values": {
+        "LEFT": {
+          "samples": 7834,
+          "mean_points_per_second": 12.373061706557232
+        },
+        "CENTER": {
+          "samples": 6964,
+          "mean_points_per_second": 12.717964789031095
+        },
+        "RIGHT": {
+          "samples": 5760,
+          "mean_points_per_second": 12.92128142742618
+        }
+      }
+    },
+    "1|0-10|0": {
+      "action": "LEFT",
+      "samples": 3948,
+      "mean_points_per_second": 10.144871943954733,
+      "action_values": {
+        "CENTER": {
+          "samples": 3381,
+          "mean_points_per_second": 5.872137874916114
+        },
+        "LEFT": {
+          "samples": 3948,
+          "mean_points_per_second": 10.144871943954733
+        },
+        "RIGHT": {
+          "samples": 2845,
+          "mean_points_per_second": 9.778389243965627
+        }
+      }
+    },
+    "3|0-10|0": {
+      "action": "LEFT",
+      "samples": 5737,
+      "mean_points_per_second": 8.488778043391093,
+      "action_values": {
+        "RIGHT": {
+          "samples": 4174,
+          "mean_points_per_second": 7.452079339622716
+        },
+        "LEFT": {
+          "samples": 5737,
+          "mean_points_per_second": 8.488778043391093
+        },
+        "CENTER": {
+          "samples": 5000,
+          "mean_points_per_second": 3.829259465658699
+        }
+      }
+    },
+    "3|0-10|*": {
+      "action": "LEFT",
+      "samples": 16198,
+      "mean_points_per_second": 8.321848752429386,
+      "action_values": {
+        "RIGHT": {
+          "samples": 16421,
+          "mean_points_per_second": 8.300790975749123
+        },
+        "LEFT": {
+          "samples": 16198,
+          "mean_points_per_second": 8.321848752429386
+        },
+        "CENTER": {
+          "samples": 16235,
+          "mean_points_per_second": 3.9510116942457256
+        }
+      }
+    },
+    "2|11-20|2": {
+      "action": "LEFT",
+      "samples": 11918,
+      "mean_points_per_second": 12.540568092005476,
+      "action_values": {
+        "CENTER": {
+          "samples": 14140,
+          "mean_points_per_second": 10.25972069791141
+        },
+        "LEFT": {
+          "samples": 11918,
+          "mean_points_per_second": 12.540568092005476
+        },
+        "RIGHT": {
+          "samples": 16423,
+          "mean_points_per_second": 12.179102126078359
+        }
+      }
+    },
+    "3|0-10|1": {
+      "action": "RIGHT",
+      "samples": 6401,
+      "mean_points_per_second": 8.45536542850932,
+      "action_values": {
+        "LEFT": {
+          "samples": 6265,
+          "mean_points_per_second": 8.360394274421116
+        },
+        "CENTER": {
+          "samples": 6192,
+          "mean_points_per_second": 4.312312550327145
+        },
+        "RIGHT": {
+          "samples": 6401,
+          "mean_points_per_second": 8.45536542850932
+        }
+      }
+    },
+    "2|0-10|0": {
+      "action": "RIGHT",
+      "samples": 5283,
+      "mean_points_per_second": 9.179452764984237,
+      "action_values": {
+        "CENTER": {
+          "samples": 6116,
+          "mean_points_per_second": 5.680786504085058
+        },
+        "LEFT": {
+          "samples": 7017,
+          "mean_points_per_second": 8.8056293846383
+        },
+        "RIGHT": {
+          "samples": 5283,
+          "mean_points_per_second": 9.179452764984237
+        }
+      }
+    },
+    "2|0-10|2": {
+      "action": "LEFT",
+      "samples": 5226,
+      "mean_points_per_second": 8.999003140072306,
+      "action_values": {
+        "LEFT": {
+          "samples": 5226,
+          "mean_points_per_second": 8.999003140072306
+        },
+        "RIGHT": {
+          "samples": 7224,
+          "mean_points_per_second": 8.839318840505475
+        },
+        "CENTER": {
+          "samples": 6105,
+          "mean_points_per_second": 5.752626025716164
+        }
+      }
+    },
+    "3|21-30|1": {
+      "action": "CENTER",
+      "samples": 12969,
+      "mean_points_per_second": 8.491057280665785,
+      "action_values": {
+        "LEFT": {
+          "samples": 13265,
+          "mean_points_per_second": 7.69815464835802
+        },
+        "CENTER": {
+          "samples": 12969,
+          "mean_points_per_second": 8.491057280665785
+        },
+        "RIGHT": {
+          "samples": 13047,
+          "mean_points_per_second": 7.795389787241717
+        }
+      }
+    },
+    "1|31+|1": {
+      "action": "CENTER",
+      "samples": 4573,
+      "mean_points_per_second": 13.053177687383572,
+      "action_values": {
+        "LEFT": {
+          "samples": 4633,
+          "mean_points_per_second": 12.533472771329672
+        },
+        "CENTER": {
+          "samples": 4573,
+          "mean_points_per_second": 13.053177687383572
+        },
+        "RIGHT": {
+          "samples": 4619,
+          "mean_points_per_second": 12.552738818361146
+        }
+      }
+    },
+    "1|31+|*": {
+      "action": "LEFT",
+      "samples": 11937,
+      "mean_points_per_second": 15.930512951015379,
+      "action_values": {
+        "LEFT": {
+          "samples": 11937,
+          "mean_points_per_second": 15.930512951015379
+        },
+        "RIGHT": {
+          "samples": 11847,
+          "mean_points_per_second": 15.529426364495203
+        },
+        "CENTER": {
+          "samples": 11843,
+          "mean_points_per_second": 12.735847667716634
+        }
+      }
+    },
+    "*|31+|*": {
+      "action": "LEFT",
+      "samples": 11937,
+      "mean_points_per_second": 15.930512951015379,
+      "action_values": {
+        "LEFT": {
+          "samples": 11937,
+          "mean_points_per_second": 15.930512951015379
+        },
+        "RIGHT": {
+          "samples": 11847,
+          "mean_points_per_second": 15.529426364495203
+        },
+        "CENTER": {
+          "samples": 11843,
+          "mean_points_per_second": 12.735847667716634
+        }
+      }
+    },
+    "1|31+|2": {
+      "action": "LEFT",
+      "samples": 2975,
+      "mean_points_per_second": 20.13217379772223,
+      "action_values": {
+        "RIGHT": {
+          "samples": 4201,
+          "mean_points_per_second": 15.274690226183605
+        },
+        "LEFT": {
+          "samples": 2975,
+          "mean_points_per_second": 20.13217379772223
+        },
+        "CENTER": {
+          "samples": 3630,
+          "mean_points_per_second": 12.443924575098634
+        }
+      }
+    },
+    "1|0-10|2": {
+      "action": "LEFT",
+      "samples": 2924,
+      "mean_points_per_second": 10.028376348312703,
+      "action_values": {
+        "RIGHT": {
+          "samples": 3961,
+          "mean_points_per_second": 9.948815416487822
+        },
+        "CENTER": {
+          "samples": 3367,
+          "mean_points_per_second": 5.7629610800119995
+        },
+        "LEFT": {
+          "samples": 2924,
+          "mean_points_per_second": 10.028376348312703
+        }
+      }
+    },
+    "1|31+|0": {
+      "action": "RIGHT",
+      "samples": 3027,
+      "mean_points_per_second": 20.06177420640842,
+      "action_values": {
+        "RIGHT": {
+          "samples": 3027,
+          "mean_points_per_second": 20.06177420640842
+        },
+        "CENTER": {
+          "samples": 3640,
+          "mean_points_per_second": 12.634912324965685
+        },
+        "LEFT": {
+          "samples": 4329,
+          "mean_points_per_second": 16.424780829577017
+        }
+      }
+    },
+    "3|0-10|2": {
+      "action": "RIGHT",
+      "samples": 5846,
+      "mean_points_per_second": 8.737855696845466,
+      "action_values": {
+        "RIGHT": {
+          "samples": 5846,
+          "mean_points_per_second": 8.737855696845466
+        },
+        "CENTER": {
+          "samples": 5043,
+          "mean_points_per_second": 3.6167356409301528
+        },
+        "LEFT": {
+          "samples": 4196,
+          "mean_points_per_second": 8.03841329159452
+        }
+      }
+    }
+  }
+}
