@@ -153,6 +153,8 @@ activemq-data/
 .venv
 env/
 venv/
+.benchmark-venv/
+.benchmark-venv2/
 ENV/
 env.bak/
 venv.bak/
@@ -225,3 +227,7 @@ __marimo__/
 .DS_Store
 Thumbs.db
 highscores.csv
+training_data/rl_q_values.json
+training_data/rl_q_values.json.tmp
+training_data/rl_training_results.json
+training_data/rollouts_*.csv.gz

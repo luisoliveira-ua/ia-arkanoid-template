@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any
 
 from agents.base_agent import BaseAgent
-from arkanoid_domain import ArkanoidSearchDomain, ArkanoidState
+from arkanoid_domain import ArkanoidSearchDomain, ArkanoidState, search_decision
 
 
 class StrategicAgent(BaseAgent):
@@ -22,10 +22,28 @@ class StrategicAgent(BaseAgent):
 
     DEAD_BAND = 15.5
     TRACKING_SMOOTHING = 0.35
-    # Randomized strata cover the complete triangular angle distribution while
-    # keeping zone comparisons paired on the same set of angle quantiles.
-    ANGLE_SAMPLES = 512
+    # Deterministic midpoint quadrature compares the three zones repeatably
+    # while staying inside the server's 30 ms tick budget.
+    ANGLE_SAMPLES = 16
     SAFETY_RESERVE_TICKS = 2
+    MIN_ROBUST_REBOUND_MARGIN = 2.0
+    TARGET_POINTS_PER_SECOND = 16.0
+    # Only commit to an upper-board loop route when sampled trajectories agree
+    # with at least 99% confidence.
+    LOOP_SEEK_PROBABILITY = 0.99
+    UPPER_CHANNEL_SEEK_PROBABILITY = 0.99
+    UPPER_CHANNEL_RATE_SLACK = 0.03
+    LOOP_EARLY_WINDOW_SECONDS = 30.0
+    # Paired full-episode runs favored a smaller prior, and no prior on level 1.
+    LEARNED_PRIOR_MAX_WEIGHT = 0.0
+    LEARNED_PRIOR_MAX_WEIGHT_BY_LEVEL = {1: 0.0}
+    LOOKAHEAD_HORIZON = 3
+    LOOKAHEAD_NODE_LIMIT = 40
+    # Tree search repeatedly runs step-by-step flight simulations. Keep it out
+    # of the live tick path; the sampled full-flight rollouts below are bounded.
+    LOOKAHEAD_LEVELS: frozenset[int] = frozenset()
+    LOOKAHEAD_RATE_SLACK = 0.05
+    LOOKAHEAD_MIN_GAIN = 0.02
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
@@ -158,7 +176,7 @@ class StrategicAgent(BaseAgent):
             # Keep a small reserve both inside the paddle and inside the chosen
             # rebound region. The target itself is reachable in 28 px commands.
             robust_margin = min(catch_margin, zone_margin) - 2.0
-            if robust_margin < 2.0:
+            if robust_margin < self.MIN_ROBUST_REBOUND_MARGIN:
                 continue
             candidate = (robust_margin, -abs(target - state.paddle_x), target)
             if best is None or candidate > best:
@@ -169,7 +187,8 @@ class StrategicAgent(BaseAgent):
     def _evaluate_zone(self, domain: ArkanoidSearchDomain, state: ArkanoidState,
                        action: str, landing_x: float, inbound_seconds: float,
                        rows: dict[int, list[int]], row_height: float,
-                       quantiles: list[float]) -> tuple[float, float, float] | None:
+                       quantiles: list[float]
+                       ) -> tuple[float, float, float, float, float, float] | None:
         target_choice = self._zone_target(
             domain, state, landing_x, inbound_seconds, action
         )
@@ -181,15 +200,22 @@ class StrategicAgent(BaseAgent):
 
         total_points = 0
         total_seconds = 0.0
+        loop_count = 0
+        top_route_count = 0
+        upper_channel_count = 0
         for q in quantiles:
             # Integrate over the actual triangular bounce distribution. The
             # game samples a fresh angle on every paddle hit; no single ray is
             # reliable enough to choose a zone by itself.
             angle = domain._triangular_quantile(q, mode - half_width,
                                                  mode + half_width, mode)
-            points, flight_seconds = domain._simulate_shot_details(
-                state, landing_x, angle, rows, row_height
+            details: dict[str, int] = {}
+            points, flight_seconds, scoring_loop = domain._simulate_shot_details(
+                state, landing_x, angle, rows, row_height, details
             )
+            loop_count += int(scoring_loop)
+            top_route_count += int(details.get("top_brick_hits", 0) > 0)
+            upper_channel_count += int(details.get("upper_channel_entries", 0) > 0)
             duration = max(0.05, inbound_seconds + flight_seconds)
             total_points += points
             total_seconds += duration
@@ -201,12 +227,26 @@ class StrategicAgent(BaseAgent):
             learned_rate, prior_samples = prior
             # Online physics remains dominant. The trained table contributes
             # a small, confidence-weighted prior for similar game situations.
-            prior_weight = min(0.35, 0.50 * prior_samples / (prior_samples + 128.0))
+            prior_cap = self.LEARNED_PRIOR_MAX_WEIGHT_BY_LEVEL.get(
+                domain.level_number, self.LEARNED_PRIOR_MAX_WEIGHT
+            )
+            prior_weight = min(
+                prior_cap,
+                0.50 * prior_samples / (prior_samples + 128.0),
+            )
             utility = (1.0 - prior_weight) * utility + prior_weight * learned_rate
-        return utility, paddle_x, safety_margin
+        return (
+            utility,
+            paddle_x,
+            safety_margin,
+            loop_count / len(quantiles),
+            top_route_count / len(quantiles),
+            upper_channel_count / len(quantiles),
+        )
 
     def _choose_target(self, domain: ArkanoidSearchDomain,
-                       state: ArkanoidState) -> tuple[str, float]:
+                       state: ArkanoidState,
+                       observation: dict[str, Any] | None = None) -> tuple[str, float]:
         landing_x, inbound_seconds = domain.predict_landing(state)
         if state.ball_vy <= 0:
             low, high = self._reachable_range(domain, state, inbound_seconds)
@@ -215,36 +255,130 @@ class StrategicAgent(BaseAgent):
             return domain.CENTER, min(high, max(low, target))
 
         rows, row_height = self._brick_rows(state, domain.ball_radius)
-        # Randomized stratification gives every part of the game's triangular
-        # angle distribution equal coverage. Sharing quantiles across zones
-        # reduces noise when comparing their expected score rates.
+        # Midpoint quadrature covers the triangular distribution evenly and
+        # makes zone comparisons repeatable for the same observed board.
         quantiles = [
-            (sample + self._rng.random()) / self.ANGLE_SAMPLES
+            (sample + 0.5) / self.ANGLE_SAMPLES
             for sample in range(self.ANGLE_SAMPLES)
         ]
-        candidates: list[tuple[float, float, str, float]] = []
+        candidates: list[tuple[float, float, str, float, float, float, float]] = []
         for action in domain.ACTIONS:
             evaluated = self._evaluate_zone(domain, state, action, landing_x,
                                             inbound_seconds, rows, row_height, quantiles)
             if evaluated is None:
                 continue
-            utility, target, safety_margin = evaluated
-            candidates.append((utility, safety_margin, action, target))
+            (
+                utility,
+                target,
+                safety_margin,
+                loop_probability,
+                top_route_probability,
+                upper_channel_probability,
+            ) = evaluated
+            candidates.append((utility, safety_margin, action, target,
+                               loop_probability, top_route_probability,
+                               upper_channel_probability))
 
         if candidates:
-            # Maximize the simulated score rate directly. Safety margin only
-            # breaks exact score-rate ties; the trained contextual policy is
-            # followed when its action stays within 3% of the best online rate.
-            best = max(candidates, key=lambda row: (row[0], row[1]))
-            learned_action = self._learned_action(domain, state, landing_x)
-            selected = next(
-                (
-                    candidate for candidate in candidates
-                    if candidate[2] == learned_action
-                    and candidate[0] >= best[0] * 0.97
-                ),
-                best,
+            # Aim to reach 16 points/s; once any action reaches the target,
+            # choose the highest-rate one. Safety margin breaks exact ties.
+            target_candidates = [
+                candidate for candidate in candidates
+                if candidate[0] >= self.TARGET_POINTS_PER_SECOND
+            ]
+            best = max(target_candidates or candidates, key=lambda row: (row[0], row[1]))
+            level_time = (
+                float(observation.get("level_time_elapsed", domain._initial_level_time))
+                if observation is not None else domain._initial_level_time
             )
+            early_loop_search = level_time <= self.LOOP_EARLY_WINDOW_SECONDS
+            # Prefer a reliable upper-board ricochet whenever it is competitive.
+            # The level-one rate threshold remains an opening-phase exception;
+            # other maps can use the same fast path throughout the game.
+            loop_candidates = [
+                candidate for candidate in candidates
+                if candidate[4] >= self.LOOP_SEEK_PROBABILITY
+                and (
+                    domain.level_number != 1
+                    or candidate[0] >= self.TARGET_POINTS_PER_SECOND
+                    or early_loop_search
+                )
+                and candidate[0] >= best[0] * 0.97
+            ]
+            top_setup_candidates = [
+                candidate for candidate in candidates
+                if early_loop_search
+                and candidate[5] >= self.LOOP_SEEK_PROBABILITY
+                and candidate[0] >= best[0] * 0.97
+            ]
+            upper_channel_candidates = [
+                candidate for candidate in candidates
+                if candidate[6] >= self.UPPER_CHANNEL_SEEK_PROBABILITY
+                and candidate[0] >= best[0] * (1.0 - self.UPPER_CHANNEL_RATE_SLACK)
+            ]
+
+            if loop_candidates:
+                selected = max(loop_candidates, key=lambda row: (row[0], row[1]))
+            elif upper_channel_candidates:
+                # Prefer a corner/row opening that lets the ball enter the
+                # upper channel, provided its score rate stays competitive.
+                selected = max(
+                    upper_channel_candidates,
+                    key=lambda row: (row[0], row[6], row[1]),
+                )
+            elif top_setup_candidates:
+                # Open with a high-confidence route into the upper bricks,
+                # creating the conditions for a sustained roof loop later.
+                selected = max(
+                    top_setup_candidates,
+                    key=lambda row: (row[0], row[5], row[1]),
+                )
+            else:
+                learned_action = self._learned_action(domain, state, landing_x)
+                selected = next(
+                    (
+                        candidate for candidate in candidates
+                        if candidate[2] == learned_action
+                        and candidate[0] >= best[0] * 0.97
+                    ),
+                    best,
+                )
+
+                # Use a bounded three-rebound search to break near-ties in
+                # favor of actions with better projected follow-up shots. The
+                # stochastic first-flight evaluator still rejects weak plans.
+                near_best_count = sum(
+                    candidate[0] >= best[0] * (1.0 - self.LOOKAHEAD_RATE_SLACK)
+                    for candidate in candidates
+                )
+                if (
+                    observation is not None
+                    and domain.level_number in self.LOOKAHEAD_LEVELS
+                    and near_best_count > 1
+                ):
+                    search_domain, _, plan, action_path = search_decision(
+                        observation,
+                        horizon=self.LOOKAHEAD_HORIZON,
+                        node_limit=self.LOOKAHEAD_NODE_LIMIT,
+                    )
+                    if plan and len(action_path) >= 2:
+                        planned_action = action_path[0]
+                        planned_candidate = next(
+                            (candidate for candidate in candidates
+                             if candidate[2] == planned_action),
+                            None,
+                        )
+                        projected_rate = search_domain.points_per_second(plan[-1])
+                        if (
+                            planned_candidate is not None
+                            and planned_candidate[0] >= (
+                                best[0] * (1.0 - self.LOOKAHEAD_RATE_SLACK)
+                            )
+                            and projected_rate >= (
+                                best[0] * (1.0 + self.LOOKAHEAD_MIN_GAIN)
+                            )
+                        ):
+                            selected = planned_candidate
             return selected[2], selected[3]
 
         # If no offensive zone can be reached with a robust margin, center the
@@ -267,10 +401,10 @@ class StrategicAgent(BaseAgent):
                         or abs(velocity[1] - self._last_velocity[1]) > 1.0))
 
         if descending and (not self._was_descending or self._decision is None or changed):
-            self._decision = self._choose_target(domain, initial)
+            self._decision = self._choose_target(domain, initial, observation)
             self._locked_target = self._decision[1]
         elif not descending:
-            _, proposed = self._choose_target(domain, initial)
+            _, proposed = self._choose_target(domain, initial, observation)
             if self._target_x is None:
                 self._target_x = proposed
             else:

@@ -55,6 +55,10 @@ def _load_maps(domain: ArkanoidSearchDomain) -> list[tuple[int, tuple[BrickState
                 points=0 if bool(item.get("indestructible", False))
                 else int(points_by_type.get(item["type"], 0)),
                 indestructible=bool(item.get("indestructible", False)),
+                max_health=max(
+                    1,
+                    int(item.get("health", config.bricks.types[item["type"]].health)),
+                ),
             )
             for item in raw.get("bricks", [])
         )
@@ -100,7 +104,7 @@ def _sample_board(
             health = max(1, health - 1)
         remaining.append(BrickState(
             brick.x, brick.y, brick.width, brick.height,
-            health, brick.points, brick.indestructible,
+            health, brick.points, brick.indestructible, brick.max_health,
         ))
     return tuple(remaining)
 
@@ -144,32 +148,35 @@ def _profile_keys(
     )
 
 
-def train(simulations: int, output_dir: Path) -> dict[str, Any]:
+def train(simulations: int, output_dir: Path, seed: int = RNG_SEED) -> dict[str, Any]:
     if simulations < 1_000_000:
         raise ValueError("At least 1,000,000 simulations are required")
 
-    rng = random.Random(RNG_SEED)
+    rng = random.Random(seed)
     domain = _make_domain()
     maps = _load_maps(domain)
     output_dir.mkdir(parents=True, exist_ok=True)
-    csv_path = output_dir / f"rollouts_{simulations}.csv.gz"
+    csv_path = output_dir / f"rollouts_{simulations}_seed{seed}.csv.gz"
     profile_path = output_dir / "learned_policy.json"
 
     fields = (
         "simulation", "level", "remaining_bricks", "brick_bucket",
         "landing_x", "landing_bucket", "paddle_x", "contact_x", "action",
         "angle_deg", "inbound_seconds", "points", "flight_seconds",
-        "points_per_second",
+        "points_per_second", "scoring_upper_loop",
     )
-    aggregates: dict[str, list[float]] = defaultdict(lambda: [0.0, 0.0, 0.0])
+    aggregates: dict[str, list[float]] = defaultdict(lambda: [0.0, 0.0, 0.0, 0.0])
     total_points = 0
     total_seconds = 0.0
+    scoring_upper_loops = 0
+    level_one_samples = 0
 
     with gzip.open(csv_path, "wt", newline="", encoding="utf-8", compresslevel=1) as file:
         writer = csv.writer(file)
         writer.writerow(fields)
         for simulation in range(simulations):
             level, original_bricks = rng.choice(maps)
+            domain.level_number = level
             bricks = _sample_board(original_bricks, rng)
             action = rng.choice(domain.ACTIONS)
             contact_low, contact_high = _contact_interval(domain, action)
@@ -195,7 +202,7 @@ def train(simulations: int, output_dir: Path) -> dict[str, Any]:
             rows = _brick_rows(state, domain.ball_radius)
             mode, half_width = domain.angle_parameters(action)
             angle = rng.triangular(mode - half_width, mode + half_width, mode)
-            points, flight_seconds = domain._simulate_shot_details(
+            points, flight_seconds, scoring_upper_loop = domain._simulate_shot_details(
                 state, landing_x, angle, rows, 24.0
             )
             duration = max(0.05, inbound_seconds + flight_seconds)
@@ -208,9 +215,12 @@ def train(simulations: int, output_dir: Path) -> dict[str, Any]:
                 aggregate[0] += 1
                 aggregate[1] += points
                 aggregate[2] += duration
+                aggregate[3] += int(scoring_upper_loop)
 
             total_points += points
             total_seconds += duration
+            scoring_upper_loops += int(scoring_upper_loop)
+            level_one_samples += int(level == 1)
             writer.writerow((
                 simulation + 1,
                 level,
@@ -226,6 +236,7 @@ def train(simulations: int, output_dir: Path) -> dict[str, Any]:
                 points,
                 round(flight_seconds, 6),
                 round(points_per_second, 6),
+                int(scoring_upper_loop),
             ))
             if (simulation + 1) % 100_000 == 0:
                 print(f"Simulated {simulation + 1:,}/{simulations:,} rebounds", flush=True)
@@ -239,10 +250,12 @@ def train(simulations: int, output_dir: Path) -> dict[str, Any]:
     }
     overall_points_per_second = total_points / max(0.05, total_seconds)
     profile: dict[str, Any] = {
-        "version": 2,
+        "version": 3,
         "simulations": simulations,
-        "seed": RNG_SEED,
+        "seed": seed,
         "average_points_per_second": overall_points_per_second,
+        "scoring_upper_loop_samples": scoring_upper_loops,
+        "level_one_samples": level_one_samples,
         "objective": "total_points / total_elapsed_seconds",
         "features": ["level", "remaining_brick_bucket", "landing_third", "action"],
         "cells": cells,
@@ -250,7 +263,10 @@ def train(simulations: int, output_dir: Path) -> dict[str, Any]:
     profile_path.write_text(json.dumps(profile, indent=2), encoding="utf-8")
     return {
         "simulations": simulations,
+        "seed": seed,
         "average_points_per_second": overall_points_per_second,
+        "level_one_samples": level_one_samples,
+        "level_one_scoring_upper_loops": scoring_upper_loops,
         "profile_cells": len(cells),
         "csv_path": str(csv_path),
         "profile_path": str(profile_path),
@@ -260,14 +276,14 @@ def train(simulations: int, output_dir: Path) -> dict[str, Any]:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Train Arkanoid action priors by simulation")
     parser.add_argument("--simulations", type=int, default=DEFAULT_SIMULATIONS)
+    parser.add_argument("--seed", type=int, default=RNG_SEED)
     parser.add_argument(
         "--output-dir", type=Path, default=ROOT / "training_data"
     )
     args = parser.parse_args()
-    summary = train(args.simulations, args.output_dir)
-    summary["learned_policy"] = train_policy(
-        Path(summary["csv_path"]), Path(summary["profile_path"])
-    )
+    summary = train(args.simulations, args.output_dir, args.seed)
+    rollouts = sorted(args.output_dir.glob("rollouts_*.csv.gz"))
+    summary["learned_policy"] = train_policy(rollouts, Path(summary["profile_path"]))
     print(json.dumps(summary, indent=2))
 
 

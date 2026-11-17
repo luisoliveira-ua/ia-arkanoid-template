@@ -13,6 +13,7 @@ from typing import Any, TextIO
 
 ROOT = Path(__file__).resolve().parent
 MIN_ACTION_SAMPLES = 64
+TARGET_POINTS_PER_SECOND = 16.0
 
 
 def _open_csv(path: Path) -> TextIO:
@@ -37,7 +38,7 @@ def _rate(values: list[float]) -> float:
 
 
 def train_policy(
-    rollouts_path: Path,
+    rollouts_paths: list[Path] | Path,
     profile_path: Path,
 ) -> dict[str, Any]:
     """Learn action values on 80% of samples and report holdout performance."""
@@ -47,32 +48,42 @@ def train_policy(
     validation: dict[str, dict[str, list[float]]] = defaultdict(
         lambda: defaultdict(lambda: [0.0, 0.0, 0.0])
     )
+    if isinstance(rollouts_paths, Path):
+        paths = [rollouts_paths]
+    else:
+        paths = list(rollouts_paths)
     total_rows = train_rows = validation_rows = 0
+    level_one_rows = level_one_loop_labeled_rows = level_one_loops = 0
 
-    with _open_csv(rollouts_path) as file:
-        reader = csv.DictReader(file)
-        for row in reader:
-            total_rows += 1
-            simulation = int(row["simulation"])
-            level = row["level"]
-            density = row["brick_bucket"]
-            landing = row["landing_bucket"]
-            action = row["action"]
-            points = float(row["points"])
-            duration = max(
-                0.05,
-                float(row["inbound_seconds"]) + float(row["flight_seconds"]),
-            )
-            target = training if simulation % 5 else validation
-            if target is training:
-                train_rows += 1
-            else:
-                validation_rows += 1
-            for key in _context_keys(level, density, landing):
-                values = target[key][action]
-                values[0] += 1
-                values[1] += points
-                values[2] += duration
+    for path in paths:
+        with _open_csv(path) as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                total_rows += 1
+                level = row["level"]
+                density = row["brick_bucket"]
+                landing = row["landing_bucket"]
+                action = row["action"]
+                points = float(row["points"])
+                duration = max(
+                    0.05,
+                    float(row["inbound_seconds"]) + float(row["flight_seconds"]),
+                )
+                if level == "1":
+                    level_one_rows += 1
+                    if row.get("scoring_upper_loop") not in (None, ""):
+                        level_one_loop_labeled_rows += 1
+                        level_one_loops += int(row["scoring_upper_loop"] or 0)
+                target = training if total_rows % 5 else validation
+                if target is training:
+                    train_rows += 1
+                else:
+                    validation_rows += 1
+                for key in _context_keys(level, density, landing):
+                    values = target[key][action]
+                    values[0] += 1
+                    values[1] += points
+                    values[2] += duration
 
     cells: dict[str, dict[str, float | int]] = {}
     for context, actions in training.items():
@@ -111,6 +122,7 @@ def train_policy(
     validation_total = [0.0, 0.0, 0.0]
     validation_policy = [0.0, 0.0, 0.0]
     covered_contexts = 0
+    target_contexts = 0
     for context, actions in validation.items():
         if "|*|*" in context:
             continue
@@ -133,6 +145,8 @@ def train_policy(
             validation_policy[0] += selected_values[0]
             validation_policy[1] += selected_values[1]
             validation_policy[2] += selected_values[2]
+            if _rate(selected_values) >= TARGET_POINTS_PER_SECOND:
+                target_contexts += 1
 
     random_rate = validation_total[1] / max(0.05, validation_total[2])
     learned_rate = validation_policy[1] / max(0.05, validation_policy[2])
@@ -140,8 +154,12 @@ def train_policy(
     profile: dict[str, Any] = {
         "version": 3,
         "simulations": total_rows,
+        "rollout_files": [str(path) for path in paths],
         "training_samples": train_rows,
         "validation_samples": validation_rows,
+        "level_one_samples": level_one_rows,
+        "level_one_loop_labeled_samples": level_one_loop_labeled_rows,
+        "level_one_scoring_loops": level_one_loops,
         "minimum_action_samples": MIN_ACTION_SAMPLES,
         "objective": "total_points / total_elapsed_seconds",
         "features": ["level", "remaining_brick_bucket", "landing_third"],
@@ -150,6 +168,11 @@ def train_policy(
             "random_points_per_second": random_rate,
             "learned_points_per_second": learned_rate,
             "relative_lift": lift,
+            "target_points_per_second": TARGET_POINTS_PER_SECOND,
+            "contexts_meeting_target": target_contexts,
+            "context_target_rate": (
+                target_contexts / covered_contexts if covered_contexts else 0.0
+            ),
         },
         "cells": cells,
         "policy": policy,
@@ -160,15 +183,19 @@ def train_policy(
         "simulations": total_rows,
         "training_samples": train_rows,
         "validation_samples": validation_rows,
+        "level_one_samples": level_one_rows,
+        "level_one_loop_labeled_samples": level_one_loop_labeled_rows,
+        "level_one_scoring_loops": level_one_loops,
         "policy_contexts": len(policy),
+        "target_points_per_second": TARGET_POINTS_PER_SECOND,
     }
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Learn a score-rate policy from saved rollouts")
     parser.add_argument(
-        "--rollouts", type=Path,
-        default=ROOT / "training_data" / "rollouts_1000000.csv.gz",
+        "--rollouts", type=Path, nargs="+",
+        default=[ROOT / "training_data" / "rollouts_1000000.csv.gz"],
     )
     parser.add_argument(
         "--profile", type=Path,

@@ -134,6 +134,7 @@ class Game:
             "width": W, "height": H, "ceiling_y": CEILING_Y, "paddle_y": PADDLE_Y,
             "paddle_width": PADDLE_W, "paddle_step_distance": STEP, "fps": FPS,
             "paddle_x": self.paddle_x, "ball_radius": RADIUS,
+            "stage": self.layout + 1,
             "ball_speed": SPEED, "ball_x": self.bx, "ball_y": self.by,
             "ball_vx": self.bvx, "ball_vy": self.bvy, "lives": self.lives,
             "score": self.score, "level_score": self.score,

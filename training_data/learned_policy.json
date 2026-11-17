@@ -1,8 +1,17 @@
 {
   "version": 3,
-  "simulations": 1000000,
-  "training_samples": 800000,
-  "validation_samples": 200000,
+  "simulations": 15000000,
+  "rollout_files": [
+    "C:\\Users\\luisc\\Desktop\\faculdade\\3ano_1\\ia\\ia-arkanoid-template\\training_data\\rollouts_1000000.csv.gz",
+    "C:\\Users\\luisc\\Desktop\\faculdade\\3ano_1\\ia\\ia-arkanoid-template\\training_data\\rollouts_10000000_seed20261119.csv.gz",
+    "C:\\Users\\luisc\\Desktop\\faculdade\\3ano_1\\ia\\ia-arkanoid-template\\training_data\\rollouts_1000000_seed20261117.csv.gz",
+    "C:\\Users\\luisc\\Desktop\\faculdade\\3ano_1\\ia\\ia-arkanoid-template\\training_data\\rollouts_3000000_seed20261118.csv.gz"
+  ],
+  "training_samples": 12000000,
+  "validation_samples": 3000000,
+  "level_one_samples": 5001618,
+  "level_one_loop_labeled_samples": 4668205,
+  "level_one_scoring_loops": 314698,
   "minimum_action_samples": 64,
   "objective": "total_points / total_elapsed_seconds",
   "features": [
@@ -12,1777 +21,1780 @@
   ],
   "validation": {
     "covered_contexts": 30,
-    "random_points_per_second": 10.893504275559042,
-    "learned_points_per_second": 11.974567404733877,
-    "relative_lift": 0.0992392440328258
+    "random_points_per_second": 12.323448620984989,
+    "learned_points_per_second": 13.639104999866046,
+    "relative_lift": 0.10676040606366399,
+    "target_points_per_second": 16.0,
+    "contexts_meeting_target": 6,
+    "context_target_rate": 0.2
   },
   "cells": {
     "1|11-20|2|RIGHT": {
-      "samples": 9956,
-      "mean_points_per_second": 14.18570408470397
+      "samples": 149945,
+      "mean_points_per_second": 16.834404752625286
     },
     "1|11-20|2|LEFT": {
-      "samples": 7331,
-      "mean_points_per_second": 15.41747156653941
+      "samples": 108698,
+      "mean_points_per_second": 17.571500423414207
     },
     "1|11-20|2|CENTER": {
-      "samples": 8617,
-      "mean_points_per_second": 8.981034415886143
+      "samples": 129608,
+      "mean_points_per_second": 10.625970827648292
     },
     "1|11-20|*|RIGHT": {
-      "samples": 28226,
-      "mean_points_per_second": 14.160426835491617
+      "samples": 422543,
+      "mean_points_per_second": 16.742865779076435
     },
     "1|11-20|*|CENTER": {
-      "samples": 28177,
-      "mean_points_per_second": 8.845008532301208
+      "samples": 422521,
+      "mean_points_per_second": 10.937479647728924
     },
     "1|11-20|*|LEFT": {
-      "samples": 28349,
-      "mean_points_per_second": 14.197090895147841
+      "samples": 422234,
+      "mean_points_per_second": 16.728564171020953
     },
     "1|*|2|RIGHT": {
-      "samples": 31516,
-      "mean_points_per_second": 14.102452811723472
+      "samples": 472291,
+      "mean_points_per_second": 16.412386555155898
     },
     "1|*|2|CENTER": {
-      "samples": 27192,
-      "mean_points_per_second": 9.722475200583498
+      "samples": 409386,
+      "mean_points_per_second": 11.082278092882158
     },
     "1|*|2|LEFT": {
-      "samples": 23041,
-      "mean_points_per_second": 16.47642518645434
+      "samples": 344502,
+      "mean_points_per_second": 18.758183368250616
     },
     "1|*|*|RIGHT": {
-      "samples": 88672,
-      "mean_points_per_second": 14.092067029318526
+      "samples": 1332886,
+      "mean_points_per_second": 16.23304045396143
     },
     "1|*|*|LEFT": {
-      "samples": 89148,
-      "mean_points_per_second": 14.204675646027557
+      "samples": 1333580,
+      "mean_points_per_second": 16.2310743208813
     },
     "1|*|*|CENTER": {
-      "samples": 88815,
-      "mean_points_per_second": 9.77112674920694
+      "samples": 1333860,
+      "mean_points_per_second": 11.325730655415102
     },
     "*|11-20|*|RIGHT": {
-      "samples": 113647,
-      "mean_points_per_second": 12.178472752381683
+      "samples": 1704975,
+      "mean_points_per_second": 14.040526049558233
     },
     "*|11-20|*|CENTER": {
-      "samples": 113902,
-      "mean_points_per_second": 8.759399972921178
+      "samples": 1707500,
+      "mean_points_per_second": 10.010163503920468
     },
     "*|11-20|*|LEFT": {
-      "samples": 113786,
-      "mean_points_per_second": 12.198960313082413
+      "samples": 1704683,
+      "mean_points_per_second": 14.020058566417902
     },
     "*|*|*|RIGHT": {
-      "samples": 266882,
-      "mean_points_per_second": 11.70189330721466
+      "samples": 3998766,
+      "mean_points_per_second": 13.280710989455347
     },
     "*|*|*|CENTER": {
-      "samples": 266624,
-      "mean_points_per_second": 8.803032261940519
+      "samples": 4001830,
+      "mean_points_per_second": 9.819168193165552
     },
     "*|*|*|LEFT": {
-      "samples": 266494,
-      "mean_points_per_second": 11.757399898659411
+      "samples": 3999404,
+      "mean_points_per_second": 13.268472967678806
     },
     "1|11-20|0|RIGHT": {
-      "samples": 7361,
-      "mean_points_per_second": 15.137989142401013
+      "samples": 108939,
+      "mean_points_per_second": 17.648477423775635
     },
     "1|11-20|0|LEFT": {
-      "samples": 10134,
-      "mean_points_per_second": 14.271129173888328
+      "samples": 149739,
+      "mean_points_per_second": 16.87469489800276
     },
     "1|11-20|0|CENTER": {
-      "samples": 8708,
-      "mean_points_per_second": 8.942219320036738
+      "samples": 129179,
+      "mean_points_per_second": 10.631467857981058
     },
     "1|*|0|RIGHT": {
-      "samples": 22819,
-      "mean_points_per_second": 16.62772747725417
+      "samples": 343306,
+      "mean_points_per_second": 18.763813588885437
     },
     "1|*|0|CENTER": {
-      "samples": 27246,
-      "mean_points_per_second": 9.824806621170918
+      "samples": 407725,
+      "mean_points_per_second": 11.100536824045513
     },
     "1|*|0|LEFT": {
-      "samples": 31674,
-      "mean_points_per_second": 14.433301712288982
+      "samples": 472316,
+      "mean_points_per_second": 16.399300361514506
     },
     "2|11-20|1|CENTER": {
-      "samples": 18125,
-      "mean_points_per_second": 11.552073760941457
+      "samples": 269939,
+      "mean_points_per_second": 13.081163009534157
     },
     "2|11-20|1|LEFT": {
-      "samples": 17918,
-      "mean_points_per_second": 13.235533094733617
+      "samples": 270029,
+      "mean_points_per_second": 14.924035897936625
     },
     "2|11-20|1|RIGHT": {
-      "samples": 18013,
-      "mean_points_per_second": 13.344305748651747
+      "samples": 269731,
+      "mean_points_per_second": 14.971829741917212
     },
     "2|11-20|*|CENTER": {
-      "samples": 46417,
-      "mean_points_per_second": 10.743610791643833
+      "samples": 696538,
+      "mean_points_per_second": 11.715650087479787
     },
     "2|11-20|*|LEFT": {
-      "samples": 46418,
-      "mean_points_per_second": 12.71877674694127
+      "samples": 697106,
+      "mean_points_per_second": 14.576778773760594
     },
     "2|11-20|*|RIGHT": {
-      "samples": 46269,
-      "mean_points_per_second": 12.759976634283488
+      "samples": 696037,
+      "mean_points_per_second": 14.601220716253406
     },
     "2|*|1|CENTER": {
-      "samples": 34843,
-      "mean_points_per_second": 10.955610932231046
+      "samples": 517515,
+      "mean_points_per_second": 12.289313097525849
     },
     "2|*|1|LEFT": {
-      "samples": 34170,
-      "mean_points_per_second": 12.467658679067673
+      "samples": 516340,
+      "mean_points_per_second": 13.876835457461683
     },
     "2|*|1|RIGHT": {
-      "samples": 34502,
-      "mean_points_per_second": 12.484799519020317
+      "samples": 517422,
+      "mean_points_per_second": 13.912236295747691
     },
     "2|*|*|CENTER": {
-      "samples": 89007,
-      "mean_points_per_second": 10.222906863203288
+      "samples": 1334381,
+      "mean_points_per_second": 11.020579857972846
     },
     "2|*|*|RIGHT": {
-      "samples": 89056,
-      "mean_points_per_second": 11.945833256955746
+      "samples": 1333434,
+      "mean_points_per_second": 13.543212896874216
     },
     "2|*|*|LEFT": {
-      "samples": 88435,
-      "mean_points_per_second": 11.936968189080078
+      "samples": 1333495,
+      "mean_points_per_second": 13.52739517658352
     },
     "1|0-10|1|RIGHT": {
-      "samples": 4299,
-      "mean_points_per_second": 10.250026388074952
+      "samples": 65037,
+      "mean_points_per_second": 12.4021653798682
     },
     "1|0-10|1|LEFT": {
-      "samples": 4314,
-      "mean_points_per_second": 10.742099446155668
+      "samples": 64271,
+      "mean_points_per_second": 12.360092148992093
     },
     "1|0-10|1|CENTER": {
-      "samples": 4349,
-      "mean_points_per_second": 5.938418552355849
+      "samples": 64433,
+      "mean_points_per_second": 7.4074029061491755
     },
     "1|0-10|*|RIGHT": {
-      "samples": 11105,
-      "mean_points_per_second": 10.021557814014965
+      "samples": 166382,
+      "mean_points_per_second": 11.85359272634713
     },
     "1|0-10|*|LEFT": {
-      "samples": 11186,
-      "mean_points_per_second": 10.345646567464962
+      "samples": 166612,
+      "mean_points_per_second": 11.864289162606948
     },
     "1|0-10|*|CENTER": {
-      "samples": 11097,
-      "mean_points_per_second": 5.865206050597336
+      "samples": 166447,
+      "mean_points_per_second": 6.887737965290157
     },
     "1|*|1|RIGHT": {
-      "samples": 34337,
-      "mean_points_per_second": 12.310102334609109
+      "samples": 517289,
+      "mean_points_per_second": 14.299873336775606
     },
     "1|*|1|LEFT": {
-      "samples": 34433,
-      "mean_points_per_second": 12.395054224946898
+      "samples": 516762,
+      "mean_points_per_second": 14.302604392972068
     },
     "1|*|1|CENTER": {
-      "samples": 34377,
-      "mean_points_per_second": 9.767101521569218
+      "samples": 516749,
+      "mean_points_per_second": 11.698805546872583
     },
     "*|0-10|*|RIGHT": {
-      "samples": 47980,
-      "mean_points_per_second": 9.099887965182342
+      "samples": 714213,
+      "mean_points_per_second": 10.653181482491789
     },
     "*|0-10|*|LEFT": {
-      "samples": 47443,
-      "mean_points_per_second": 9.193436790384677
+      "samples": 713966,
+      "mean_points_per_second": 10.63494588719685
     },
     "*|0-10|*|CENTER": {
-      "samples": 47537,
-      "mean_points_per_second": 5.318851823036563
+      "samples": 713964,
+      "mean_points_per_second": 6.205191286147655
     },
     "2|21-30|2|RIGHT": {
-      "samples": 8031,
-      "mean_points_per_second": 12.304930805352853
+      "samples": 117883,
+      "mean_points_per_second": 13.044660485716479
     },
     "2|21-30|2|CENTER": {
-      "samples": 6687,
-      "mean_points_per_second": 12.758337739378366
+      "samples": 102003,
+      "mean_points_per_second": 13.00816552178938
     },
     "2|21-30|2|LEFT": {
-      "samples": 5688,
-      "mean_points_per_second": 12.907799909464181
+      "samples": 85999,
+      "mean_points_per_second": 14.701144080867694
     },
     "2|21-30|*|RIGHT": {
-      "samples": 22333,
-      "mean_points_per_second": 12.945007033710617
+      "samples": 333323,
+      "mean_points_per_second": 13.90449321316233
     },
     "2|21-30|*|LEFT": {
-      "samples": 21958,
-      "mean_points_per_second": 12.949706697298168
+      "samples": 332537,
+      "mean_points_per_second": 13.917665083295686
     },
     "2|21-30|*|CENTER": {
-      "samples": 22385,
-      "mean_points_per_second": 13.161829057220144
+      "samples": 334374,
+      "mean_points_per_second": 13.43356256388419
     },
     "2|*|2|RIGHT": {
-      "samples": 31678,
-      "mean_points_per_second": 11.400377755464307
+      "samples": 472414,
+      "mean_points_per_second": 12.914208782563769
     },
     "2|*|2|CENTER": {
-      "samples": 26932,
-      "mean_points_per_second": 9.775931977944698
+      "samples": 408513,
+      "mean_points_per_second": 10.245322408489395
     },
     "2|*|2|LEFT": {
-      "samples": 22832,
-      "mean_points_per_second": 11.782389966665688
+      "samples": 343631,
+      "mean_points_per_second": 13.843139460362575
     },
     "*|21-30|*|RIGHT": {
-      "samples": 93408,
-      "mean_points_per_second": 12.057821550127347
+      "samples": 1401584,
+      "mean_points_per_second": 13.286273466537326
     },
     "*|21-30|*|LEFT": {
-      "samples": 93328,
-      "mean_points_per_second": 12.070015242827264
+      "samples": 1402136,
+      "mean_points_per_second": 13.284753419407018
     },
     "*|21-30|*|CENTER": {
-      "samples": 93342,
-      "mean_points_per_second": 10.270053304126543
+      "samples": 1401971,
+      "mean_points_per_second": 11.128801717426787
     },
     "3|21-30|2|RIGHT": {
-      "samples": 11827,
-      "mean_points_per_second": 8.124571905938746
+      "samples": 177325,
+      "mean_points_per_second": 8.613002617621358
     },
     "3|21-30|2|CENTER": {
-      "samples": 10285,
-      "mean_points_per_second": 7.282725573681008
+      "samples": 153524,
+      "mean_points_per_second": 7.569648999321037
     },
     "3|21-30|2|LEFT": {
-      "samples": 8542,
-      "mean_points_per_second": 8.958110362466114
+      "samples": 129853,
+      "mean_points_per_second": 9.069548136994985
     },
     "3|21-30|*|RIGHT": {
-      "samples": 33581,
-      "mean_points_per_second": 8.191666893462866
+      "samples": 502294,
+      "mean_points_per_second": 8.580806880449119
     },
     "3|21-30|*|CENTER": {
-      "samples": 33259,
-      "mean_points_per_second": 7.769702482779087
+      "samples": 501100,
+      "mean_points_per_second": 8.152704884368651
     },
     "3|21-30|*|LEFT": {
-      "samples": 33694,
-      "mean_points_per_second": 8.218222409486806
+      "samples": 503484,
+      "mean_points_per_second": 8.574050679186358
     },
     "3|*|2|RIGHT": {
-      "samples": 31503,
-      "mean_points_per_second": 9.156915634870272
+      "samples": 471411,
+      "mean_points_per_second": 10.152896308917954
     },
     "3|*|2|CENTER": {
-      "samples": 27336,
-      "mean_points_per_second": 6.023127650037104
+      "samples": 408432,
+      "mean_points_per_second": 6.56611195716563
     },
     "3|*|2|LEFT": {
-      "samples": 22741,
-      "mean_points_per_second": 9.218793015887757
+      "samples": 343525,
+      "mean_points_per_second": 9.698482969223962
     },
     "3|*|*|RIGHT": {
-      "samples": 89154,
-      "mean_points_per_second": 9.016545630020403
+      "samples": 1332446,
+      "mean_points_per_second": 9.98723189307744
     },
     "3|*|*|LEFT": {
-      "samples": 88911,
-      "mean_points_per_second": 9.059458657037965
+      "samples": 1332329,
+      "mean_points_per_second": 9.96551131695156
     },
     "3|*|*|CENTER": {
-      "samples": 88802,
-      "mean_points_per_second": 6.435729978364577
+      "samples": 1333589,
+      "mean_points_per_second": 7.133120922491253
     },
     "2|11-20|0|CENTER": {
-      "samples": 14152,
-      "mean_points_per_second": 10.231957667861668
+      "samples": 213046,
+      "mean_points_per_second": 10.882205015627319
     },
     "2|11-20|0|RIGHT": {
-      "samples": 11833,
-      "mean_points_per_second": 12.694611228502955
+      "samples": 179488,
+      "mean_points_per_second": 14.874890122259924
     },
     "2|11-20|0|LEFT": {
-      "samples": 16582,
-      "mean_points_per_second": 12.304434561370615
+      "samples": 247886,
+      "mean_points_per_second": 13.967616890057402
     },
     "2|*|0|CENTER": {
-      "samples": 27232,
-      "mean_points_per_second": 9.761872538872737
+      "samples": 408353,
+      "mean_points_per_second": 10.244754173569001
     },
     "2|*|0|LEFT": {
-      "samples": 31433,
-      "mean_points_per_second": 11.486465305718053
+      "samples": 473524,
+      "mean_points_per_second": 12.909090943485108
     },
     "2|*|0|RIGHT": {
-      "samples": 22876,
-      "mean_points_per_second": 11.902056330761132
+      "samples": 343598,
+      "mean_points_per_second": 13.842802244252097
     },
     "2|21-30|1|LEFT": {
-      "samples": 8436,
-      "mean_points_per_second": 13.521307253606347
+      "samples": 128740,
+      "mean_points_per_second": 14.140894838187629
     },
     "2|21-30|1|RIGHT": {
-      "samples": 8542,
-      "mean_points_per_second": 13.571533135577903
+      "samples": 129205,
+      "mean_points_per_second": 14.1503283168152
     },
     "2|21-30|1|CENTER": {
-      "samples": 8734,
-      "mean_points_per_second": 13.843228534832628
+      "samples": 129879,
+      "mean_points_per_second": 14.135882288282719
     },
     "3|11-20|1|RIGHT": {
-      "samples": 15303,
-      "mean_points_per_second": 10.196137762793319
+      "samples": 227363,
+      "mean_points_per_second": 11.654437569882646
     },
     "3|11-20|1|LEFT": {
-      "samples": 15214,
-      "mean_points_per_second": 10.22258968892986
+      "samples": 227668,
+      "mean_points_per_second": 11.652883372007787
     },
     "3|11-20|1|CENTER": {
-      "samples": 15291,
-      "mean_points_per_second": 6.857472686759285
+      "samples": 228899,
+      "mean_points_per_second": 8.284357217404557
     },
     "3|11-20|*|RIGHT": {
-      "samples": 39152,
-      "mean_points_per_second": 10.018267049726429
+      "samples": 586395,
+      "mean_points_per_second": 11.371058455152523
     },
     "3|11-20|*|LEFT": {
-      "samples": 39019,
-      "mean_points_per_second": 10.086076476704177
+      "samples": 585343,
+      "mean_points_per_second": 11.344772710490021
     },
     "3|11-20|*|CENTER": {
-      "samples": 39308,
-      "mean_points_per_second": 6.406788585290265
+      "samples": 588441,
+      "mean_points_per_second": 7.364564611268657
     },
     "3|*|1|RIGHT": {
-      "samples": 34751,
-      "mean_points_per_second": 8.983393936781233
+      "samples": 516920,
+      "mean_points_per_second": 10.012396215487238
     },
     "3|*|1|LEFT": {
-      "samples": 34744,
-      "mean_points_per_second": 8.933873879123496
+      "samples": 517531,
+      "mean_points_per_second": 10.004195947132965
     },
     "3|*|1|CENTER": {
-      "samples": 34452,
-      "mean_points_per_second": 6.968845555193365
+      "samples": 517116,
+      "mean_points_per_second": 8.005722313349795
     },
     "3|11-20|2|RIGHT": {
-      "samples": 13830,
-      "mean_points_per_second": 10.198662027408039
+      "samples": 207669,
+      "mean_points_per_second": 11.62585275006839
     },
     "3|11-20|2|CENTER": {
-      "samples": 12008,
-      "mean_points_per_second": 6.017102365048161
+      "samples": 179752,
+      "mean_points_per_second": 6.753674827677289
     },
     "3|11-20|2|LEFT": {
-      "samples": 10003,
-      "mean_points_per_second": 9.957809922656033
+      "samples": 150697,
+      "mean_points_per_second": 10.620766308158508
     },
     "1|21-30|1|LEFT": {
-      "samples": 14602,
-      "mean_points_per_second": 12.2047331519046
+      "samples": 219369,
+      "mean_points_per_second": 13.996580179164383
     },
     "1|21-30|1|CENTER": {
-      "samples": 14603,
-      "mean_points_per_second": 10.845937161602023
+      "samples": 219641,
+      "mean_points_per_second": 12.717218458305997
     },
     "1|21-30|1|RIGHT": {
-      "samples": 14510,
-      "mean_points_per_second": 12.00804055497212
+      "samples": 219409,
+      "mean_points_per_second": 13.965336371639427
     },
     "1|21-30|*|LEFT": {
-      "samples": 37676,
-      "mean_points_per_second": 14.891268764122744
+      "samples": 566115,
+      "mean_points_per_second": 16.95481355855067
     },
     "1|21-30|*|RIGHT": {
-      "samples": 37494,
-      "mean_points_per_second": 14.881094145802484
+      "samples": 565967,
+      "mean_points_per_second": 16.95098182448861
     },
     "1|21-30|*|CENTER": {
-      "samples": 37698,
-      "mean_points_per_second": 10.80083159672425
+      "samples": 566497,
+      "mean_points_per_second": 12.433115784964617
     },
     "2|0-10|1|RIGHT": {
-      "samples": 7947,
-      "mean_points_per_second": 9.613562494896074
+      "samples": 118486,
+      "mean_points_per_second": 11.425576962502895
     },
     "2|0-10|1|CENTER": {
-      "samples": 7984,
-      "mean_points_per_second": 6.7619501233384405
+      "samples": 117697,
+      "mean_points_per_second": 8.6984272379021
     },
     "2|0-10|1|LEFT": {
-      "samples": 7816,
-      "mean_points_per_second": 9.802659088708493
+      "samples": 117571,
+      "mean_points_per_second": 11.371463351578964
     },
     "2|0-10|*|RIGHT": {
-      "samples": 20454,
-      "mean_points_per_second": 9.225499954448805
+      "samples": 304074,
+      "mean_points_per_second": 10.910328482818649
     },
     "2|0-10|*|CENTER": {
-      "samples": 20205,
-      "mean_points_per_second": 6.118932425750397
+      "samples": 303469,
+      "mean_points_per_second": 7.0857683551786375
     },
     "2|0-10|*|LEFT": {
-      "samples": 20059,
-      "mean_points_per_second": 9.238640810621776
+      "samples": 303852,
+      "mean_points_per_second": 10.881216388456188
     },
     "1|21-30|2|RIGHT": {
-      "samples": 13398,
-      "mean_points_per_second": 14.987863515711762
+      "samples": 200780,
+      "mean_points_per_second": 17.28995402397593
     },
     "1|21-30|2|CENTER": {
-      "samples": 11578,
-      "mean_points_per_second": 10.674834306610515
+      "samples": 173797,
+      "mean_points_per_second": 12.239359185152255
     },
     "1|21-30|2|LEFT": {
-      "samples": 9811,
-      "mean_points_per_second": 18.138679926939936
+      "samples": 146583,
+      "mean_points_per_second": 20.654034013018276
     },
     "1|11-20|1|RIGHT": {
-      "samples": 10909,
-      "mean_points_per_second": 13.459102992295346
+      "samples": 163659,
+      "mean_points_per_second": 16.035069123131233
     },
     "1|11-20|1|CENTER": {
-      "samples": 10852,
-      "mean_points_per_second": 8.657673802111063
+      "samples": 163734,
+      "mean_points_per_second": 11.428327148275951
     },
     "1|11-20|1|LEFT": {
-      "samples": 10884,
-      "mean_points_per_second": 13.28171774730549
+      "samples": 163797,
+      "mean_points_per_second": 16.015256088175253
     },
     "3|11-20|0|RIGHT": {
-      "samples": 10019,
-      "mean_points_per_second": 9.502886833197502
+      "samples": 151363,
+      "mean_points_per_second": 10.601336059157378
     },
     "3|11-20|0|CENTER": {
-      "samples": 12009,
-      "mean_points_per_second": 6.217611690115706
+      "samples": 179790,
+      "mean_points_per_second": 6.798005587198415
     },
     "3|11-20|0|LEFT": {
-      "samples": 13802,
-      "mean_points_per_second": 10.029768208514623
+      "samples": 206978,
+      "mean_points_per_second": 11.537738135834596
     },
     "3|*|0|RIGHT": {
-      "samples": 22900,
-      "mean_points_per_second": 8.874756595974869
+      "samples": 344115,
+      "mean_points_per_second": 9.724629253368137
     },
     "3|*|0|CENTER": {
-      "samples": 27014,
-      "mean_points_per_second": 6.169243644555578
+      "samples": 408041,
+      "mean_points_per_second": 6.588402935246977
     },
     "3|*|0|LEFT": {
-      "samples": 31426,
-      "mean_points_per_second": 9.08116264119949
+      "samples": 471273,
+      "mean_points_per_second": 10.119395944361818
     },
     "3|21-30|0|RIGHT": {
-      "samples": 8707,
-      "mean_points_per_second": 8.864212209174337
+      "samples": 129765,
+      "mean_points_per_second": 9.089592385078419
     },
     "3|21-30|0|CENTER": {
-      "samples": 10005,
-      "mean_points_per_second": 7.341531496207971
+      "samples": 153618,
+      "mean_points_per_second": 7.569947142883017
     },
     "3|21-30|0|LEFT": {
-      "samples": 11887,
-      "mean_points_per_second": 8.256312333223624
+      "samples": 178212,
+      "mean_points_per_second": 8.63502835333731
     },
     "1|21-30|0|CENTER": {
-      "samples": 11517,
-      "mean_points_per_second": 10.870931606008106
+      "samples": 173059,
+      "mean_points_per_second": 12.270643327297192
     },
     "1|21-30|0|LEFT": {
-      "samples": 13263,
-      "mean_points_per_second": 15.259646430452776
+      "samples": 200163,
+      "mean_points_per_second": 17.28169942887046
     },
     "1|21-30|0|RIGHT": {
-      "samples": 9586,
-      "mean_points_per_second": 18.774888474286957
+      "samples": 145778,
+      "mean_points_per_second": 20.696791148566046
     },
     "2|21-30|0|LEFT": {
-      "samples": 7834,
-      "mean_points_per_second": 12.373061706557232
+      "samples": 117798,
+      "mean_points_per_second": 13.067503841044376
     },
     "2|21-30|0|CENTER": {
-      "samples": 6964,
-      "mean_points_per_second": 12.717964789031095
+      "samples": 102492,
+      "mean_points_per_second": 12.989110164653951
     },
     "2|21-30|0|RIGHT": {
-      "samples": 5760,
-      "mean_points_per_second": 12.92128142742618
+      "samples": 86235,
+      "mean_points_per_second": 14.66569819772831
     },
     "1|0-10|0|CENTER": {
-      "samples": 3381,
-      "mean_points_per_second": 5.872137874916114
+      "samples": 50826,
+      "mean_points_per_second": 6.554288658636625
     },
     "1|0-10|0|LEFT": {
-      "samples": 3948,
-      "mean_points_per_second": 10.144871943954733
+      "samples": 59161,
+      "mean_points_per_second": 11.557834317748368
     },
     "1|0-10|0|RIGHT": {
-      "samples": 2845,
-      "mean_points_per_second": 9.778389243965627
+      "samples": 42631,
+      "mean_points_per_second": 11.444866266344242
     },
     "3|0-10|0|RIGHT": {
-      "samples": 4174,
-      "mean_points_per_second": 7.452079339622716
+      "samples": 62987,
+      "mean_points_per_second": 8.933796935197542
     },
     "3|0-10|0|LEFT": {
-      "samples": 5737,
-      "mean_points_per_second": 8.488778043391093
+      "samples": 86083,
+      "mean_points_per_second": 9.708546628842313
     },
     "3|0-10|0|CENTER": {
-      "samples": 5000,
-      "mean_points_per_second": 3.829259465658699
+      "samples": 74633,
+      "mean_points_per_second": 4.197968037647281
     },
     "3|0-10|*|RIGHT": {
-      "samples": 16421,
-      "mean_points_per_second": 8.300790975749123
+      "samples": 243757,
+      "mean_points_per_second": 9.489399152939754
     },
     "3|0-10|*|LEFT": {
-      "samples": 16198,
-      "mean_points_per_second": 8.321848752429386
+      "samples": 243502,
+      "mean_points_per_second": 9.463252832553199
     },
     "3|0-10|*|CENTER": {
-      "samples": 16235,
-      "mean_points_per_second": 3.9510116942457256
+      "samples": 244048,
+      "mean_points_per_second": 4.647283944828388
     },
     "2|11-20|2|CENTER": {
-      "samples": 14140,
-      "mean_points_per_second": 10.25972069791141
+      "samples": 213553,
+      "mean_points_per_second": 10.887149550729788
     },
     "2|11-20|2|LEFT": {
-      "samples": 11918,
-      "mean_points_per_second": 12.540568092005476
+      "samples": 179191,
+      "mean_points_per_second": 14.883244571907897
     },
     "2|11-20|2|RIGHT": {
-      "samples": 16423,
-      "mean_points_per_second": 12.179102126078359
+      "samples": 246818,
+      "mean_points_per_second": 13.9902246894304
     },
     "3|0-10|1|LEFT": {
-      "samples": 6265,
-      "mean_points_per_second": 8.360394274421116
+      "samples": 94444,
+      "mean_points_per_second": 9.68516375855653
     },
     "3|0-10|1|CENTER": {
-      "samples": 6192,
-      "mean_points_per_second": 4.312312550327145
+      "samples": 94259,
+      "mean_points_per_second": 5.340936741142209
     },
     "3|0-10|1|RIGHT": {
-      "samples": 6401,
-      "mean_points_per_second": 8.45536542850932
+      "samples": 94353,
+      "mean_points_per_second": 9.678865248947641
     },
     "2|0-10|0|CENTER": {
-      "samples": 6116,
-      "mean_points_per_second": 5.680786504085058
+      "samples": 92815,
+      "mean_points_per_second": 6.106892388183333
     },
     "2|0-10|0|LEFT": {
-      "samples": 7017,
-      "mean_points_per_second": 8.8056293846383
+      "samples": 107840,
+      "mean_points_per_second": 10.489361663748856
     },
     "2|0-10|0|RIGHT": {
-      "samples": 5283,
-      "mean_points_per_second": 9.179452764984237
+      "samples": 77875,
+      "mean_points_per_second": 10.72740455777983
     },
     "2|0-10|2|LEFT": {
-      "samples": 5226,
-      "mean_points_per_second": 8.999003140072306
+      "samples": 78441,
+      "mean_points_per_second": 10.703876842491821
     },
     "2|0-10|2|RIGHT": {
-      "samples": 7224,
-      "mean_points_per_second": 8.839318840505475
+      "samples": 107713,
+      "mean_points_per_second": 10.490186744035038
     },
     "2|0-10|2|CENTER": {
-      "samples": 6105,
-      "mean_points_per_second": 5.752626025716164
+      "samples": 92957,
+      "mean_points_per_second": 6.10003120577699
     },
     "3|21-30|1|LEFT": {
-      "samples": 13265,
-      "mean_points_per_second": 7.69815464835802
+      "samples": 195419,
+      "mean_points_per_second": 8.18261650456509
     },
     "3|21-30|1|CENTER": {
-      "samples": 12969,
-      "mean_points_per_second": 8.491057280665785
+      "samples": 193958,
+      "mean_points_per_second": 9.078571359629215
     },
     "3|21-30|1|RIGHT": {
-      "samples": 13047,
-      "mean_points_per_second": 7.795389787241717
+      "samples": 195204,
+      "mean_points_per_second": 8.207219941640602
     },
     "1|31+|1|LEFT": {
-      "samples": 4633,
-      "mean_points_per_second": 12.533472771329672
+      "samples": 69325,
+      "mean_points_per_second": 13.044421955370582
     },
     "1|31+|1|CENTER": {
-      "samples": 4573,
-      "mean_points_per_second": 13.053177687383572
+      "samples": 68941,
+      "mean_points_per_second": 13.502139774664874
     },
     "1|31+|1|RIGHT": {
-      "samples": 4619,
-      "mean_points_per_second": 12.552738818361146
+      "samples": 69184,
+      "mean_points_per_second": 13.053053201469686
     },
     "1|31+|*|LEFT": {
-      "samples": 11937,
-      "mean_points_per_second": 15.930512951015379
+      "samples": 178619,
+      "mean_points_per_second": 17.096885211264883
     },
     "1|31+|*|RIGHT": {
-      "samples": 11847,
-      "mean_points_per_second": 15.529426364495203
+      "samples": 177994,
+      "mean_points_per_second": 17.10045819486794
     },
     "1|31+|*|CENTER": {
-      "samples": 11843,
-      "mean_points_per_second": 12.735847667716634
+      "samples": 178395,
+      "mean_points_per_second": 13.246992678724501
     },
     "*|31+|*|LEFT": {
-      "samples": 11937,
-      "mean_points_per_second": 15.930512951015379
+      "samples": 178619,
+      "mean_points_per_second": 17.096885211264883
     },
     "*|31+|*|RIGHT": {
-      "samples": 11847,
-      "mean_points_per_second": 15.529426364495203
+      "samples": 177994,
+      "mean_points_per_second": 17.10045819486794
     },
     "*|31+|*|CENTER": {
-      "samples": 11843,
-      "mean_points_per_second": 12.735847667716634
+      "samples": 178395,
+      "mean_points_per_second": 13.246992678724501
     },
     "1|31+|2|RIGHT": {
-      "samples": 4201,
-      "mean_points_per_second": 15.274690226183605
+      "samples": 62852,
+      "mean_points_per_second": 17.411026907956956
     },
     "1|31+|2|LEFT": {
-      "samples": 2975,
-      "mean_points_per_second": 20.13217379772223
+      "samples": 46041,
+      "mean_points_per_second": 22.486284006478126
     },
     "1|31+|2|CENTER": {
-      "samples": 3630,
-      "mean_points_per_second": 12.443924575098634
+      "samples": 54793,
+      "mean_points_per_second": 13.078144365950193
     },
     "1|0-10|2|RIGHT": {
-      "samples": 3961,
-      "mean_points_per_second": 9.948815416487822
+      "samples": 58714,
+      "mean_points_per_second": 11.54115759453743
     },
     "1|0-10|2|CENTER": {
-      "samples": 3367,
-      "mean_points_per_second": 5.7629610800119995
+      "samples": 51188,
+      "mean_points_per_second": 6.562620694940071
     },
     "1|0-10|2|LEFT": {
-      "samples": 2924,
-      "mean_points_per_second": 10.028376348312703
+      "samples": 43180,
+      "mean_points_per_second": 11.542120070116043
     },
     "1|31+|0|RIGHT": {
-      "samples": 3027,
-      "mean_points_per_second": 20.06177420640842
+      "samples": 45958,
+      "mean_points_per_second": 22.292556180145155
     },
     "1|31+|0|CENTER": {
-      "samples": 3640,
-      "mean_points_per_second": 12.634912324965685
+      "samples": 54661,
+      "mean_points_per_second": 13.097526175659361
     },
     "1|31+|0|LEFT": {
-      "samples": 4329,
-      "mean_points_per_second": 16.424780829577017
+      "samples": 63253,
+      "mean_points_per_second": 17.262123980053502
     },
     "3|0-10|2|RIGHT": {
-      "samples": 5846,
-      "mean_points_per_second": 8.737855696845466
+      "samples": 86417,
+      "mean_points_per_second": 9.691313787592536
     },
     "3|0-10|2|CENTER": {
-      "samples": 5043,
-      "mean_points_per_second": 3.6167356409301528
+      "samples": 75156,
+      "mean_points_per_second": 4.202567938134698
     },
     "3|0-10|2|LEFT": {
-      "samples": 4196,
-      "mean_points_per_second": 8.03841329159452
+      "samples": 62975,
+      "mean_points_per_second": 8.800211966188922
     }
   },
   "policy": {
     "1|11-20|2": {
       "action": "LEFT",
-      "samples": 7331,
-      "mean_points_per_second": 15.41747156653941,
+      "samples": 108698,
+      "mean_points_per_second": 17.571500423414207,
       "action_values": {
         "RIGHT": {
-          "samples": 9956,
-          "mean_points_per_second": 14.18570408470397
+          "samples": 149945,
+          "mean_points_per_second": 16.834404752625286
         },
         "LEFT": {
-          "samples": 7331,
-          "mean_points_per_second": 15.41747156653941
+          "samples": 108698,
+          "mean_points_per_second": 17.571500423414207
         },
         "CENTER": {
-          "samples": 8617,
-          "mean_points_per_second": 8.981034415886143
+          "samples": 129608,
+          "mean_points_per_second": 10.625970827648292
         }
       }
     },
     "1|11-20|*": {
-      "action": "LEFT",
-      "samples": 28349,
-      "mean_points_per_second": 14.197090895147841,
+      "action": "RIGHT",
+      "samples": 422543,
+      "mean_points_per_second": 16.742865779076435,
       "action_values": {
         "RIGHT": {
-          "samples": 28226,
-          "mean_points_per_second": 14.160426835491617
+          "samples": 422543,
+          "mean_points_per_second": 16.742865779076435
         },
         "CENTER": {
-          "samples": 28177,
-          "mean_points_per_second": 8.845008532301208
+          "samples": 422521,
+          "mean_points_per_second": 10.937479647728924
         },
         "LEFT": {
-          "samples": 28349,
-          "mean_points_per_second": 14.197090895147841
+          "samples": 422234,
+          "mean_points_per_second": 16.728564171020953
         }
       }
     },
     "1|*|2": {
       "action": "LEFT",
-      "samples": 23041,
-      "mean_points_per_second": 16.47642518645434,
+      "samples": 344502,
+      "mean_points_per_second": 18.758183368250616,
       "action_values": {
         "RIGHT": {
-          "samples": 31516,
-          "mean_points_per_second": 14.102452811723472
+          "samples": 472291,
+          "mean_points_per_second": 16.412386555155898
         },
         "CENTER": {
-          "samples": 27192,
-          "mean_points_per_second": 9.722475200583498
+          "samples": 409386,
+          "mean_points_per_second": 11.082278092882158
         },
         "LEFT": {
-          "samples": 23041,
-          "mean_points_per_second": 16.47642518645434
+          "samples": 344502,
+          "mean_points_per_second": 18.758183368250616
         }
       }
     },
     "1|*|*": {
-      "action": "LEFT",
-      "samples": 89148,
-      "mean_points_per_second": 14.204675646027557,
+      "action": "RIGHT",
+      "samples": 1332886,
+      "mean_points_per_second": 16.23304045396143,
       "action_values": {
         "RIGHT": {
-          "samples": 88672,
-          "mean_points_per_second": 14.092067029318526
+          "samples": 1332886,
+          "mean_points_per_second": 16.23304045396143
         },
         "LEFT": {
-          "samples": 89148,
-          "mean_points_per_second": 14.204675646027557
+          "samples": 1333580,
+          "mean_points_per_second": 16.2310743208813
         },
         "CENTER": {
-          "samples": 88815,
-          "mean_points_per_second": 9.77112674920694
+          "samples": 1333860,
+          "mean_points_per_second": 11.325730655415102
         }
       }
     },
     "*|11-20|*": {
-      "action": "LEFT",
-      "samples": 113786,
-      "mean_points_per_second": 12.198960313082413,
+      "action": "RIGHT",
+      "samples": 1704975,
+      "mean_points_per_second": 14.040526049558233,
       "action_values": {
         "RIGHT": {
-          "samples": 113647,
-          "mean_points_per_second": 12.178472752381683
+          "samples": 1704975,
+          "mean_points_per_second": 14.040526049558233
         },
         "CENTER": {
-          "samples": 113902,
-          "mean_points_per_second": 8.759399972921178
+          "samples": 1707500,
+          "mean_points_per_second": 10.010163503920468
         },
         "LEFT": {
-          "samples": 113786,
-          "mean_points_per_second": 12.198960313082413
+          "samples": 1704683,
+          "mean_points_per_second": 14.020058566417902
         }
       }
     },
     "*|*|*": {
-      "action": "LEFT",
-      "samples": 266494,
-      "mean_points_per_second": 11.757399898659411,
+      "action": "RIGHT",
+      "samples": 3998766,
+      "mean_points_per_second": 13.280710989455347,
       "action_values": {
         "RIGHT": {
-          "samples": 266882,
-          "mean_points_per_second": 11.70189330721466
+          "samples": 3998766,
+          "mean_points_per_second": 13.280710989455347
         },
         "CENTER": {
-          "samples": 266624,
-          "mean_points_per_second": 8.803032261940519
+          "samples": 4001830,
+          "mean_points_per_second": 9.819168193165552
         },
         "LEFT": {
-          "samples": 266494,
-          "mean_points_per_second": 11.757399898659411
+          "samples": 3999404,
+          "mean_points_per_second": 13.268472967678806
         }
       }
     },
     "1|11-20|0": {
       "action": "RIGHT",
-      "samples": 7361,
-      "mean_points_per_second": 15.137989142401013,
+      "samples": 108939,
+      "mean_points_per_second": 17.648477423775635,
       "action_values": {
         "RIGHT": {
-          "samples": 7361,
-          "mean_points_per_second": 15.137989142401013
+          "samples": 108939,
+          "mean_points_per_second": 17.648477423775635
         },
         "LEFT": {
-          "samples": 10134,
-          "mean_points_per_second": 14.271129173888328
+          "samples": 149739,
+          "mean_points_per_second": 16.87469489800276
         },
         "CENTER": {
-          "samples": 8708,
-          "mean_points_per_second": 8.942219320036738
+          "samples": 129179,
+          "mean_points_per_second": 10.631467857981058
         }
       }
     },
     "1|*|0": {
       "action": "RIGHT",
-      "samples": 22819,
-      "mean_points_per_second": 16.62772747725417,
+      "samples": 343306,
+      "mean_points_per_second": 18.763813588885437,
       "action_values": {
         "RIGHT": {
-          "samples": 22819,
-          "mean_points_per_second": 16.62772747725417
+          "samples": 343306,
+          "mean_points_per_second": 18.763813588885437
         },
         "CENTER": {
-          "samples": 27246,
-          "mean_points_per_second": 9.824806621170918
+          "samples": 407725,
+          "mean_points_per_second": 11.100536824045513
         },
         "LEFT": {
-          "samples": 31674,
-          "mean_points_per_second": 14.433301712288982
+          "samples": 472316,
+          "mean_points_per_second": 16.399300361514506
         }
       }
     },
     "2|11-20|1": {
       "action": "RIGHT",
-      "samples": 18013,
-      "mean_points_per_second": 13.344305748651747,
+      "samples": 269731,
+      "mean_points_per_second": 14.971829741917212,
       "action_values": {
         "CENTER": {
-          "samples": 18125,
-          "mean_points_per_second": 11.552073760941457
+          "samples": 269939,
+          "mean_points_per_second": 13.081163009534157
         },
         "LEFT": {
-          "samples": 17918,
-          "mean_points_per_second": 13.235533094733617
+          "samples": 270029,
+          "mean_points_per_second": 14.924035897936625
         },
         "RIGHT": {
-          "samples": 18013,
-          "mean_points_per_second": 13.344305748651747
+          "samples": 269731,
+          "mean_points_per_second": 14.971829741917212
         }
       }
     },
     "2|11-20|*": {
       "action": "RIGHT",
-      "samples": 46269,
-      "mean_points_per_second": 12.759976634283488,
+      "samples": 696037,
+      "mean_points_per_second": 14.601220716253406,
       "action_values": {
         "CENTER": {
-          "samples": 46417,
-          "mean_points_per_second": 10.743610791643833
+          "samples": 696538,
+          "mean_points_per_second": 11.715650087479787
         },
         "LEFT": {
-          "samples": 46418,
-          "mean_points_per_second": 12.71877674694127
+          "samples": 697106,
+          "mean_points_per_second": 14.576778773760594
         },
         "RIGHT": {
-          "samples": 46269,
-          "mean_points_per_second": 12.759976634283488
+          "samples": 696037,
+          "mean_points_per_second": 14.601220716253406
         }
       }
     },
     "2|*|1": {
       "action": "RIGHT",
-      "samples": 34502,
-      "mean_points_per_second": 12.484799519020317,
+      "samples": 517422,
+      "mean_points_per_second": 13.912236295747691,
       "action_values": {
         "CENTER": {
-          "samples": 34843,
-          "mean_points_per_second": 10.955610932231046
+          "samples": 517515,
+          "mean_points_per_second": 12.289313097525849
         },
         "LEFT": {
-          "samples": 34170,
-          "mean_points_per_second": 12.467658679067673
+          "samples": 516340,
+          "mean_points_per_second": 13.876835457461683
         },
         "RIGHT": {
-          "samples": 34502,
-          "mean_points_per_second": 12.484799519020317
+          "samples": 517422,
+          "mean_points_per_second": 13.912236295747691
         }
       }
     },
     "2|*|*": {
       "action": "RIGHT",
-      "samples": 89056,
-      "mean_points_per_second": 11.945833256955746,
+      "samples": 1333434,
+      "mean_points_per_second": 13.543212896874216,
       "action_values": {
         "CENTER": {
-          "samples": 89007,
-          "mean_points_per_second": 10.222906863203288
+          "samples": 1334381,
+          "mean_points_per_second": 11.020579857972846
         },
         "RIGHT": {
-          "samples": 89056,
-          "mean_points_per_second": 11.945833256955746
+          "samples": 1333434,
+          "mean_points_per_second": 13.543212896874216
         },
         "LEFT": {
-          "samples": 88435,
-          "mean_points_per_second": 11.936968189080078
+          "samples": 1333495,
+          "mean_points_per_second": 13.52739517658352
         }
       }
     },
     "1|0-10|1": {
-      "action": "LEFT",
-      "samples": 4314,
-      "mean_points_per_second": 10.742099446155668,
+      "action": "RIGHT",
+      "samples": 65037,
+      "mean_points_per_second": 12.4021653798682,
       "action_values": {
         "RIGHT": {
-          "samples": 4299,
-          "mean_points_per_second": 10.250026388074952
+          "samples": 65037,
+          "mean_points_per_second": 12.4021653798682
         },
         "LEFT": {
-          "samples": 4314,
-          "mean_points_per_second": 10.742099446155668
+          "samples": 64271,
+          "mean_points_per_second": 12.360092148992093
         },
         "CENTER": {
-          "samples": 4349,
-          "mean_points_per_second": 5.938418552355849
+          "samples": 64433,
+          "mean_points_per_second": 7.4074029061491755
         }
       }
     },
     "1|0-10|*": {
       "action": "LEFT",
-      "samples": 11186,
-      "mean_points_per_second": 10.345646567464962,
+      "samples": 166612,
+      "mean_points_per_second": 11.864289162606948,
       "action_values": {
         "RIGHT": {
-          "samples": 11105,
-          "mean_points_per_second": 10.021557814014965
+          "samples": 166382,
+          "mean_points_per_second": 11.85359272634713
         },
         "LEFT": {
-          "samples": 11186,
-          "mean_points_per_second": 10.345646567464962
+          "samples": 166612,
+          "mean_points_per_second": 11.864289162606948
         },
         "CENTER": {
-          "samples": 11097,
-          "mean_points_per_second": 5.865206050597336
+          "samples": 166447,
+          "mean_points_per_second": 6.887737965290157
         }
       }
     },
     "1|*|1": {
       "action": "LEFT",
-      "samples": 34433,
-      "mean_points_per_second": 12.395054224946898,
+      "samples": 516762,
+      "mean_points_per_second": 14.302604392972068,
       "action_values": {
         "RIGHT": {
-          "samples": 34337,
-          "mean_points_per_second": 12.310102334609109
+          "samples": 517289,
+          "mean_points_per_second": 14.299873336775606
         },
         "LEFT": {
-          "samples": 34433,
-          "mean_points_per_second": 12.395054224946898
+          "samples": 516762,
+          "mean_points_per_second": 14.302604392972068
         },
         "CENTER": {
-          "samples": 34377,
-          "mean_points_per_second": 9.767101521569218
+          "samples": 516749,
+          "mean_points_per_second": 11.698805546872583
         }
       }
     },
     "*|0-10|*": {
-      "action": "LEFT",
-      "samples": 47443,
-      "mean_points_per_second": 9.193436790384677,
+      "action": "RIGHT",
+      "samples": 714213,
+      "mean_points_per_second": 10.653181482491789,
       "action_values": {
         "RIGHT": {
-          "samples": 47980,
-          "mean_points_per_second": 9.099887965182342
+          "samples": 714213,
+          "mean_points_per_second": 10.653181482491789
         },
         "LEFT": {
-          "samples": 47443,
-          "mean_points_per_second": 9.193436790384677
+          "samples": 713966,
+          "mean_points_per_second": 10.63494588719685
         },
         "CENTER": {
-          "samples": 47537,
-          "mean_points_per_second": 5.318851823036563
+          "samples": 713964,
+          "mean_points_per_second": 6.205191286147655
         }
       }
     },
     "2|21-30|2": {
       "action": "LEFT",
-      "samples": 5688,
-      "mean_points_per_second": 12.907799909464181,
+      "samples": 85999,
+      "mean_points_per_second": 14.701144080867694,
       "action_values": {
         "RIGHT": {
-          "samples": 8031,
-          "mean_points_per_second": 12.304930805352853
+          "samples": 117883,
+          "mean_points_per_second": 13.044660485716479
         },
         "CENTER": {
-          "samples": 6687,
-          "mean_points_per_second": 12.758337739378366
+          "samples": 102003,
+          "mean_points_per_second": 13.00816552178938
         },
         "LEFT": {
-          "samples": 5688,
-          "mean_points_per_second": 12.907799909464181
+          "samples": 85999,
+          "mean_points_per_second": 14.701144080867694
         }
       }
     },
     "2|21-30|*": {
-      "action": "CENTER",
-      "samples": 22385,
-      "mean_points_per_second": 13.161829057220144,
+      "action": "LEFT",
+      "samples": 332537,
+      "mean_points_per_second": 13.917665083295686,
       "action_values": {
         "RIGHT": {
-          "samples": 22333,
-          "mean_points_per_second": 12.945007033710617
+          "samples": 333323,
+          "mean_points_per_second": 13.90449321316233
         },
         "LEFT": {
-          "samples": 21958,
-          "mean_points_per_second": 12.949706697298168
+          "samples": 332537,
+          "mean_points_per_second": 13.917665083295686
         },
         "CENTER": {
-          "samples": 22385,
-          "mean_points_per_second": 13.161829057220144
+          "samples": 334374,
+          "mean_points_per_second": 13.43356256388419
         }
       }
     },
     "2|*|2": {
       "action": "LEFT",
-      "samples": 22832,
-      "mean_points_per_second": 11.782389966665688,
+      "samples": 343631,
+      "mean_points_per_second": 13.843139460362575,
       "action_values": {
         "RIGHT": {
-          "samples": 31678,
-          "mean_points_per_second": 11.400377755464307
+          "samples": 472414,
+          "mean_points_per_second": 12.914208782563769
         },
         "CENTER": {
-          "samples": 26932,
-          "mean_points_per_second": 9.775931977944698
+          "samples": 408513,
+          "mean_points_per_second": 10.245322408489395
         },
         "LEFT": {
-          "samples": 22832,
-          "mean_points_per_second": 11.782389966665688
+          "samples": 343631,
+          "mean_points_per_second": 13.843139460362575
         }
       }
     },
     "*|21-30|*": {
-      "action": "LEFT",
-      "samples": 93328,
-      "mean_points_per_second": 12.070015242827264,
+      "action": "RIGHT",
+      "samples": 1401584,
+      "mean_points_per_second": 13.286273466537326,
       "action_values": {
         "RIGHT": {
-          "samples": 93408,
-          "mean_points_per_second": 12.057821550127347
+          "samples": 1401584,
+          "mean_points_per_second": 13.286273466537326
         },
         "LEFT": {
-          "samples": 93328,
-          "mean_points_per_second": 12.070015242827264
+          "samples": 1402136,
+          "mean_points_per_second": 13.284753419407018
         },
         "CENTER": {
-          "samples": 93342,
-          "mean_points_per_second": 10.270053304126543
+          "samples": 1401971,
+          "mean_points_per_second": 11.128801717426787
         }
       }
     },
     "3|21-30|2": {
       "action": "LEFT",
-      "samples": 8542,
-      "mean_points_per_second": 8.958110362466114,
+      "samples": 129853,
+      "mean_points_per_second": 9.069548136994985,
       "action_values": {
         "RIGHT": {
-          "samples": 11827,
-          "mean_points_per_second": 8.124571905938746
+          "samples": 177325,
+          "mean_points_per_second": 8.613002617621358
         },
         "CENTER": {
-          "samples": 10285,
-          "mean_points_per_second": 7.282725573681008
+          "samples": 153524,
+          "mean_points_per_second": 7.569648999321037
         },
         "LEFT": {
-          "samples": 8542,
-          "mean_points_per_second": 8.958110362466114
+          "samples": 129853,
+          "mean_points_per_second": 9.069548136994985
         }
       }
     },
     "3|21-30|*": {
-      "action": "LEFT",
-      "samples": 33694,
-      "mean_points_per_second": 8.218222409486806,
+      "action": "RIGHT",
+      "samples": 502294,
+      "mean_points_per_second": 8.580806880449119,
       "action_values": {
         "RIGHT": {
-          "samples": 33581,
-          "mean_points_per_second": 8.191666893462866
+          "samples": 502294,
+          "mean_points_per_second": 8.580806880449119
         },
         "CENTER": {
-          "samples": 33259,
-          "mean_points_per_second": 7.769702482779087
+          "samples": 501100,
+          "mean_points_per_second": 8.152704884368651
         },
         "LEFT": {
-          "samples": 33694,
-          "mean_points_per_second": 8.218222409486806
+          "samples": 503484,
+          "mean_points_per_second": 8.574050679186358
         }
       }
     },
     "3|*|2": {
-      "action": "LEFT",
-      "samples": 22741,
-      "mean_points_per_second": 9.218793015887757,
+      "action": "RIGHT",
+      "samples": 471411,
+      "mean_points_per_second": 10.152896308917954,
       "action_values": {
         "RIGHT": {
-          "samples": 31503,
-          "mean_points_per_second": 9.156915634870272
+          "samples": 471411,
+          "mean_points_per_second": 10.152896308917954
         },
         "CENTER": {
-          "samples": 27336,
-          "mean_points_per_second": 6.023127650037104
+          "samples": 408432,
+          "mean_points_per_second": 6.56611195716563
         },
         "LEFT": {
-          "samples": 22741,
-          "mean_points_per_second": 9.218793015887757
+          "samples": 343525,
+          "mean_points_per_second": 9.698482969223962
         }
       }
     },
     "3|*|*": {
-      "action": "LEFT",
-      "samples": 88911,
-      "mean_points_per_second": 9.059458657037965,
+      "action": "RIGHT",
+      "samples": 1332446,
+      "mean_points_per_second": 9.98723189307744,
       "action_values": {
         "RIGHT": {
-          "samples": 89154,
-          "mean_points_per_second": 9.016545630020403
+          "samples": 1332446,
+          "mean_points_per_second": 9.98723189307744
         },
         "LEFT": {
-          "samples": 88911,
-          "mean_points_per_second": 9.059458657037965
+          "samples": 1332329,
+          "mean_points_per_second": 9.96551131695156
         },
         "CENTER": {
-          "samples": 88802,
-          "mean_points_per_second": 6.435729978364577
+          "samples": 1333589,
+          "mean_points_per_second": 7.133120922491253
         }
       }
     },
     "2|11-20|0": {
       "action": "RIGHT",
-      "samples": 11833,
-      "mean_points_per_second": 12.694611228502955,
+      "samples": 179488,
+      "mean_points_per_second": 14.874890122259924,
       "action_values": {
         "CENTER": {
-          "samples": 14152,
-          "mean_points_per_second": 10.231957667861668
+          "samples": 213046,
+          "mean_points_per_second": 10.882205015627319
         },
         "RIGHT": {
-          "samples": 11833,
-          "mean_points_per_second": 12.694611228502955
+          "samples": 179488,
+          "mean_points_per_second": 14.874890122259924
         },
         "LEFT": {
-          "samples": 16582,
-          "mean_points_per_second": 12.304434561370615
+          "samples": 247886,
+          "mean_points_per_second": 13.967616890057402
         }
       }
     },
     "2|*|0": {
       "action": "RIGHT",
-      "samples": 22876,
-      "mean_points_per_second": 11.902056330761132,
+      "samples": 343598,
+      "mean_points_per_second": 13.842802244252097,
       "action_values": {
         "CENTER": {
-          "samples": 27232,
-          "mean_points_per_second": 9.761872538872737
+          "samples": 408353,
+          "mean_points_per_second": 10.244754173569001
         },
         "LEFT": {
-          "samples": 31433,
-          "mean_points_per_second": 11.486465305718053
+          "samples": 473524,
+          "mean_points_per_second": 12.909090943485108
         },
         "RIGHT": {
-          "samples": 22876,
-          "mean_points_per_second": 11.902056330761132
+          "samples": 343598,
+          "mean_points_per_second": 13.842802244252097
         }
       }
     },
     "2|21-30|1": {
-      "action": "CENTER",
-      "samples": 8734,
-      "mean_points_per_second": 13.843228534832628,
+      "action": "RIGHT",
+      "samples": 129205,
+      "mean_points_per_second": 14.1503283168152,
       "action_values": {
         "LEFT": {
-          "samples": 8436,
-          "mean_points_per_second": 13.521307253606347
+          "samples": 128740,
+          "mean_points_per_second": 14.140894838187629
         },
         "RIGHT": {
-          "samples": 8542,
-          "mean_points_per_second": 13.571533135577903
+          "samples": 129205,
+          "mean_points_per_second": 14.1503283168152
         },
         "CENTER": {
-          "samples": 8734,
-          "mean_points_per_second": 13.843228534832628
+          "samples": 129879,
+          "mean_points_per_second": 14.135882288282719
         }
       }
     },
     "3|11-20|1": {
-      "action": "LEFT",
-      "samples": 15214,
-      "mean_points_per_second": 10.22258968892986,
+      "action": "RIGHT",
+      "samples": 227363,
+      "mean_points_per_second": 11.654437569882646,
       "action_values": {
         "RIGHT": {
-          "samples": 15303,
-          "mean_points_per_second": 10.196137762793319
+          "samples": 227363,
+          "mean_points_per_second": 11.654437569882646
         },
         "LEFT": {
-          "samples": 15214,
-          "mean_points_per_second": 10.22258968892986
+          "samples": 227668,
+          "mean_points_per_second": 11.652883372007787
         },
         "CENTER": {
-          "samples": 15291,
-          "mean_points_per_second": 6.857472686759285
+          "samples": 228899,
+          "mean_points_per_second": 8.284357217404557
         }
       }
     },
     "3|11-20|*": {
-      "action": "LEFT",
-      "samples": 39019,
-      "mean_points_per_second": 10.086076476704177,
+      "action": "RIGHT",
+      "samples": 586395,
+      "mean_points_per_second": 11.371058455152523,
       "action_values": {
         "RIGHT": {
-          "samples": 39152,
-          "mean_points_per_second": 10.018267049726429
+          "samples": 586395,
+          "mean_points_per_second": 11.371058455152523
         },
         "LEFT": {
-          "samples": 39019,
-          "mean_points_per_second": 10.086076476704177
+          "samples": 585343,
+          "mean_points_per_second": 11.344772710490021
         },
         "CENTER": {
-          "samples": 39308,
-          "mean_points_per_second": 6.406788585290265
+          "samples": 588441,
+          "mean_points_per_second": 7.364564611268657
         }
       }
     },
     "3|*|1": {
       "action": "RIGHT",
-      "samples": 34751,
-      "mean_points_per_second": 8.983393936781233,
+      "samples": 516920,
+      "mean_points_per_second": 10.012396215487238,
       "action_values": {
         "RIGHT": {
-          "samples": 34751,
-          "mean_points_per_second": 8.983393936781233
+          "samples": 516920,
+          "mean_points_per_second": 10.012396215487238
         },
         "LEFT": {
-          "samples": 34744,
-          "mean_points_per_second": 8.933873879123496
+          "samples": 517531,
+          "mean_points_per_second": 10.004195947132965
         },
         "CENTER": {
-          "samples": 34452,
-          "mean_points_per_second": 6.968845555193365
+          "samples": 517116,
+          "mean_points_per_second": 8.005722313349795
         }
       }
     },
     "3|11-20|2": {
       "action": "RIGHT",
-      "samples": 13830,
-      "mean_points_per_second": 10.198662027408039,
+      "samples": 207669,
+      "mean_points_per_second": 11.62585275006839,
       "action_values": {
         "RIGHT": {
-          "samples": 13830,
-          "mean_points_per_second": 10.198662027408039
+          "samples": 207669,
+          "mean_points_per_second": 11.62585275006839
         },
         "CENTER": {
-          "samples": 12008,
-          "mean_points_per_second": 6.017102365048161
+          "samples": 179752,
+          "mean_points_per_second": 6.753674827677289
         },
         "LEFT": {
-          "samples": 10003,
-          "mean_points_per_second": 9.957809922656033
+          "samples": 150697,
+          "mean_points_per_second": 10.620766308158508
         }
       }
     },
     "1|21-30|1": {
       "action": "LEFT",
-      "samples": 14602,
-      "mean_points_per_second": 12.2047331519046,
+      "samples": 219369,
+      "mean_points_per_second": 13.996580179164383,
       "action_values": {
         "LEFT": {
-          "samples": 14602,
-          "mean_points_per_second": 12.2047331519046
+          "samples": 219369,
+          "mean_points_per_second": 13.996580179164383
         },
         "CENTER": {
-          "samples": 14603,
-          "mean_points_per_second": 10.845937161602023
+          "samples": 219641,
+          "mean_points_per_second": 12.717218458305997
         },
         "RIGHT": {
-          "samples": 14510,
-          "mean_points_per_second": 12.00804055497212
+          "samples": 219409,
+          "mean_points_per_second": 13.965336371639427
         }
       }
     },
     "1|21-30|*": {
       "action": "LEFT",
-      "samples": 37676,
-      "mean_points_per_second": 14.891268764122744,
+      "samples": 566115,
+      "mean_points_per_second": 16.95481355855067,
       "action_values": {
         "LEFT": {
-          "samples": 37676,
-          "mean_points_per_second": 14.891268764122744
+          "samples": 566115,
+          "mean_points_per_second": 16.95481355855067
         },
         "RIGHT": {
-          "samples": 37494,
-          "mean_points_per_second": 14.881094145802484
+          "samples": 565967,
+          "mean_points_per_second": 16.95098182448861
         },
         "CENTER": {
-          "samples": 37698,
-          "mean_points_per_second": 10.80083159672425
+          "samples": 566497,
+          "mean_points_per_second": 12.433115784964617
         }
       }
     },
     "2|0-10|1": {
-      "action": "LEFT",
-      "samples": 7816,
-      "mean_points_per_second": 9.802659088708493,
+      "action": "RIGHT",
+      "samples": 118486,
+      "mean_points_per_second": 11.425576962502895,
       "action_values": {
         "RIGHT": {
-          "samples": 7947,
-          "mean_points_per_second": 9.613562494896074
+          "samples": 118486,
+          "mean_points_per_second": 11.425576962502895
         },
         "CENTER": {
-          "samples": 7984,
-          "mean_points_per_second": 6.7619501233384405
+          "samples": 117697,
+          "mean_points_per_second": 8.6984272379021
         },
         "LEFT": {
-          "samples": 7816,
-          "mean_points_per_second": 9.802659088708493
+          "samples": 117571,
+          "mean_points_per_second": 11.371463351578964
         }
       }
     },
     "2|0-10|*": {
-      "action": "LEFT",
-      "samples": 20059,
-      "mean_points_per_second": 9.238640810621776,
+      "action": "RIGHT",
+      "samples": 304074,
+      "mean_points_per_second": 10.910328482818649,
       "action_values": {
         "RIGHT": {
-          "samples": 20454,
-          "mean_points_per_second": 9.225499954448805
+          "samples": 304074,
+          "mean_points_per_second": 10.910328482818649
         },
         "CENTER": {
-          "samples": 20205,
-          "mean_points_per_second": 6.118932425750397
+          "samples": 303469,
+          "mean_points_per_second": 7.0857683551786375
         },
         "LEFT": {
-          "samples": 20059,
-          "mean_points_per_second": 9.238640810621776
+          "samples": 303852,
+          "mean_points_per_second": 10.881216388456188
         }
       }
     },
     "1|21-30|2": {
       "action": "LEFT",
-      "samples": 9811,
-      "mean_points_per_second": 18.138679926939936,
+      "samples": 146583,
+      "mean_points_per_second": 20.654034013018276,
       "action_values": {
         "RIGHT": {
-          "samples": 13398,
-          "mean_points_per_second": 14.987863515711762
+          "samples": 200780,
+          "mean_points_per_second": 17.28995402397593
         },
         "CENTER": {
-          "samples": 11578,
-          "mean_points_per_second": 10.674834306610515
+          "samples": 173797,
+          "mean_points_per_second": 12.239359185152255
         },
         "LEFT": {
-          "samples": 9811,
-          "mean_points_per_second": 18.138679926939936
+          "samples": 146583,
+          "mean_points_per_second": 20.654034013018276
         }
       }
     },
     "1|11-20|1": {
       "action": "RIGHT",
-      "samples": 10909,
-      "mean_points_per_second": 13.459102992295346,
+      "samples": 163659,
+      "mean_points_per_second": 16.035069123131233,
       "action_values": {
         "RIGHT": {
-          "samples": 10909,
-          "mean_points_per_second": 13.459102992295346
+          "samples": 163659,
+          "mean_points_per_second": 16.035069123131233
         },
         "CENTER": {
-          "samples": 10852,
-          "mean_points_per_second": 8.657673802111063
+          "samples": 163734,
+          "mean_points_per_second": 11.428327148275951
         },
         "LEFT": {
-          "samples": 10884,
-          "mean_points_per_second": 13.28171774730549
+          "samples": 163797,
+          "mean_points_per_second": 16.015256088175253
         }
       }
     },
     "3|11-20|0": {
       "action": "LEFT",
-      "samples": 13802,
-      "mean_points_per_second": 10.029768208514623,
+      "samples": 206978,
+      "mean_points_per_second": 11.537738135834596,
       "action_values": {
         "RIGHT": {
-          "samples": 10019,
-          "mean_points_per_second": 9.502886833197502
+          "samples": 151363,
+          "mean_points_per_second": 10.601336059157378
         },
         "CENTER": {
-          "samples": 12009,
-          "mean_points_per_second": 6.217611690115706
+          "samples": 179790,
+          "mean_points_per_second": 6.798005587198415
         },
         "LEFT": {
-          "samples": 13802,
-          "mean_points_per_second": 10.029768208514623
+          "samples": 206978,
+          "mean_points_per_second": 11.537738135834596
         }
       }
     },
     "3|*|0": {
       "action": "LEFT",
-      "samples": 31426,
-      "mean_points_per_second": 9.08116264119949,
+      "samples": 471273,
+      "mean_points_per_second": 10.119395944361818,
       "action_values": {
         "RIGHT": {
-          "samples": 22900,
-          "mean_points_per_second": 8.874756595974869
+          "samples": 344115,
+          "mean_points_per_second": 9.724629253368137
         },
         "CENTER": {
-          "samples": 27014,
-          "mean_points_per_second": 6.169243644555578
+          "samples": 408041,
+          "mean_points_per_second": 6.588402935246977
         },
         "LEFT": {
-          "samples": 31426,
-          "mean_points_per_second": 9.08116264119949
+          "samples": 471273,
+          "mean_points_per_second": 10.119395944361818
         }
       }
     },
     "3|21-30|0": {
       "action": "RIGHT",
-      "samples": 8707,
-      "mean_points_per_second": 8.864212209174337,
+      "samples": 129765,
+      "mean_points_per_second": 9.089592385078419,
       "action_values": {
         "RIGHT": {
-          "samples": 8707,
-          "mean_points_per_second": 8.864212209174337
+          "samples": 129765,
+          "mean_points_per_second": 9.089592385078419
         },
         "CENTER": {
-          "samples": 10005,
-          "mean_points_per_second": 7.341531496207971
+          "samples": 153618,
+          "mean_points_per_second": 7.569947142883017
         },
         "LEFT": {
-          "samples": 11887,
-          "mean_points_per_second": 8.256312333223624
+          "samples": 178212,
+          "mean_points_per_second": 8.63502835333731
         }
       }
     },
     "1|21-30|0": {
       "action": "RIGHT",
-      "samples": 9586,
-      "mean_points_per_second": 18.774888474286957,
+      "samples": 145778,
+      "mean_points_per_second": 20.696791148566046,
       "action_values": {
         "CENTER": {
-          "samples": 11517,
-          "mean_points_per_second": 10.870931606008106
+          "samples": 173059,
+          "mean_points_per_second": 12.270643327297192
         },
         "LEFT": {
-          "samples": 13263,
-          "mean_points_per_second": 15.259646430452776
+          "samples": 200163,
+          "mean_points_per_second": 17.28169942887046
         },
         "RIGHT": {
-          "samples": 9586,
-          "mean_points_per_second": 18.774888474286957
+          "samples": 145778,
+          "mean_points_per_second": 20.696791148566046
         }
       }
     },
     "2|21-30|0": {
       "action": "RIGHT",
-      "samples": 5760,
-      "mean_points_per_second": 12.92128142742618,
+      "samples": 86235,
+      "mean_points_per_second": 14.66569819772831,
       "action_values": {
         "LEFT": {
-          "samples": 7834,
-          "mean_points_per_second": 12.373061706557232
+          "samples": 117798,
+          "mean_points_per_second": 13.067503841044376
         },
         "CENTER": {
-          "samples": 6964,
-          "mean_points_per_second": 12.717964789031095
+          "samples": 102492,
+          "mean_points_per_second": 12.989110164653951
         },
         "RIGHT": {
-          "samples": 5760,
-          "mean_points_per_second": 12.92128142742618
+          "samples": 86235,
+          "mean_points_per_second": 14.66569819772831
         }
       }
     },
     "1|0-10|0": {
       "action": "LEFT",
-      "samples": 3948,
-      "mean_points_per_second": 10.144871943954733,
+      "samples": 59161,
+      "mean_points_per_second": 11.557834317748368,
       "action_values": {
         "CENTER": {
-          "samples": 3381,
-          "mean_points_per_second": 5.872137874916114
+          "samples": 50826,
+          "mean_points_per_second": 6.554288658636625
         },
         "LEFT": {
-          "samples": 3948,
-          "mean_points_per_second": 10.144871943954733
+          "samples": 59161,
+          "mean_points_per_second": 11.557834317748368
         },
         "RIGHT": {
-          "samples": 2845,
-          "mean_points_per_second": 9.778389243965627
+          "samples": 42631,
+          "mean_points_per_second": 11.444866266344242
         }
       }
     },
     "3|0-10|0": {
       "action": "LEFT",
-      "samples": 5737,
-      "mean_points_per_second": 8.488778043391093,
+      "samples": 86083,
+      "mean_points_per_second": 9.708546628842313,
       "action_values": {
         "RIGHT": {
-          "samples": 4174,
-          "mean_points_per_second": 7.452079339622716
+          "samples": 62987,
+          "mean_points_per_second": 8.933796935197542
         },
         "LEFT": {
-          "samples": 5737,
-          "mean_points_per_second": 8.488778043391093
+          "samples": 86083,
+          "mean_points_per_second": 9.708546628842313
         },
         "CENTER": {
-          "samples": 5000,
-          "mean_points_per_second": 3.829259465658699
+          "samples": 74633,
+          "mean_points_per_second": 4.197968037647281
         }
       }
     },
     "3|0-10|*": {
-      "action": "LEFT",
-      "samples": 16198,
-      "mean_points_per_second": 8.321848752429386,
+      "action": "RIGHT",
+      "samples": 243757,
+      "mean_points_per_second": 9.489399152939754,
       "action_values": {
         "RIGHT": {
-          "samples": 16421,
-          "mean_points_per_second": 8.300790975749123
+          "samples": 243757,
+          "mean_points_per_second": 9.489399152939754
         },
         "LEFT": {
-          "samples": 16198,
-          "mean_points_per_second": 8.321848752429386
+          "samples": 243502,
+          "mean_points_per_second": 9.463252832553199
         },
         "CENTER": {
-          "samples": 16235,
-          "mean_points_per_second": 3.9510116942457256
+          "samples": 244048,
+          "mean_points_per_second": 4.647283944828388
         }
       }
     },
     "2|11-20|2": {
       "action": "LEFT",
-      "samples": 11918,
-      "mean_points_per_second": 12.540568092005476,
+      "samples": 179191,
+      "mean_points_per_second": 14.883244571907897,
       "action_values": {
         "CENTER": {
-          "samples": 14140,
-          "mean_points_per_second": 10.25972069791141
+          "samples": 213553,
+          "mean_points_per_second": 10.887149550729788
         },
         "LEFT": {
-          "samples": 11918,
-          "mean_points_per_second": 12.540568092005476
+          "samples": 179191,
+          "mean_points_per_second": 14.883244571907897
         },
         "RIGHT": {
-          "samples": 16423,
-          "mean_points_per_second": 12.179102126078359
+          "samples": 246818,
+          "mean_points_per_second": 13.9902246894304
         }
       }
     },
     "3|0-10|1": {
-      "action": "RIGHT",
-      "samples": 6401,
-      "mean_points_per_second": 8.45536542850932,
+      "action": "LEFT",
+      "samples": 94444,
+      "mean_points_per_second": 9.68516375855653,
       "action_values": {
         "LEFT": {
-          "samples": 6265,
-          "mean_points_per_second": 8.360394274421116
+          "samples": 94444,
+          "mean_points_per_second": 9.68516375855653
         },
         "CENTER": {
-          "samples": 6192,
-          "mean_points_per_second": 4.312312550327145
+          "samples": 94259,
+          "mean_points_per_second": 5.340936741142209
         },
         "RIGHT": {
-          "samples": 6401,
-          "mean_points_per_second": 8.45536542850932
+          "samples": 94353,
+          "mean_points_per_second": 9.678865248947641
         }
       }
     },
     "2|0-10|0": {
       "action": "RIGHT",
-      "samples": 5283,
-      "mean_points_per_second": 9.179452764984237,
+      "samples": 77875,
+      "mean_points_per_second": 10.72740455777983,
       "action_values": {
         "CENTER": {
-          "samples": 6116,
-          "mean_points_per_second": 5.680786504085058
+          "samples": 92815,
+          "mean_points_per_second": 6.106892388183333
         },
         "LEFT": {
-          "samples": 7017,
-          "mean_points_per_second": 8.8056293846383
+          "samples": 107840,
+          "mean_points_per_second": 10.489361663748856
         },
         "RIGHT": {
-          "samples": 5283,
-          "mean_points_per_second": 9.179452764984237
+          "samples": 77875,
+          "mean_points_per_second": 10.72740455777983
         }
       }
     },
     "2|0-10|2": {
       "action": "LEFT",
-      "samples": 5226,
-      "mean_points_per_second": 8.999003140072306,
+      "samples": 78441,
+      "mean_points_per_second": 10.703876842491821,
       "action_values": {
         "LEFT": {
-          "samples": 5226,
-          "mean_points_per_second": 8.999003140072306
+          "samples": 78441,
+          "mean_points_per_second": 10.703876842491821
         },
         "RIGHT": {
-          "samples": 7224,
-          "mean_points_per_second": 8.839318840505475
+          "samples": 107713,
+          "mean_points_per_second": 10.490186744035038
         },
         "CENTER": {
-          "samples": 6105,
-          "mean_points_per_second": 5.752626025716164
+          "samples": 92957,
+          "mean_points_per_second": 6.10003120577699
         }
       }
     },
     "3|21-30|1": {
       "action": "CENTER",
-      "samples": 12969,
-      "mean_points_per_second": 8.491057280665785,
+      "samples": 193958,
+      "mean_points_per_second": 9.078571359629215,
       "action_values": {
         "LEFT": {
-          "samples": 13265,
-          "mean_points_per_second": 7.69815464835802
+          "samples": 195419,
+          "mean_points_per_second": 8.18261650456509
         },
         "CENTER": {
-          "samples": 12969,
-          "mean_points_per_second": 8.491057280665785
+          "samples": 193958,
+          "mean_points_per_second": 9.078571359629215
         },
         "RIGHT": {
-          "samples": 13047,
-          "mean_points_per_second": 7.795389787241717
+          "samples": 195204,
+          "mean_points_per_second": 8.207219941640602
         }
       }
     },
     "1|31+|1": {
       "action": "CENTER",
-      "samples": 4573,
-      "mean_points_per_second": 13.053177687383572,
+      "samples": 68941,
+      "mean_points_per_second": 13.502139774664874,
       "action_values": {
         "LEFT": {
-          "samples": 4633,
-          "mean_points_per_second": 12.533472771329672
+          "samples": 69325,
+          "mean_points_per_second": 13.044421955370582
         },
         "CENTER": {
-          "samples": 4573,
-          "mean_points_per_second": 13.053177687383572
+          "samples": 68941,
+          "mean_points_per_second": 13.502139774664874
         },
         "RIGHT": {
-          "samples": 4619,
-          "mean_points_per_second": 12.552738818361146
+          "samples": 69184,
+          "mean_points_per_second": 13.053053201469686
         }
       }
     },
     "1|31+|*": {
-      "action": "LEFT",
-      "samples": 11937,
-      "mean_points_per_second": 15.930512951015379,
+      "action": "RIGHT",
+      "samples": 177994,
+      "mean_points_per_second": 17.10045819486794,
       "action_values": {
         "LEFT": {
-          "samples": 11937,
-          "mean_points_per_second": 15.930512951015379
+          "samples": 178619,
+          "mean_points_per_second": 17.096885211264883
         },
         "RIGHT": {
-          "samples": 11847,
-          "mean_points_per_second": 15.529426364495203
+          "samples": 177994,
+          "mean_points_per_second": 17.10045819486794
         },
         "CENTER": {
-          "samples": 11843,
-          "mean_points_per_second": 12.735847667716634
+          "samples": 178395,
+          "mean_points_per_second": 13.246992678724501
         }
       }
     },
     "*|31+|*": {
-      "action": "LEFT",
-      "samples": 11937,
-      "mean_points_per_second": 15.930512951015379,
+      "action": "RIGHT",
+      "samples": 177994,
+      "mean_points_per_second": 17.10045819486794,
       "action_values": {
         "LEFT": {
-          "samples": 11937,
-          "mean_points_per_second": 15.930512951015379
+          "samples": 178619,
+          "mean_points_per_second": 17.096885211264883
         },
         "RIGHT": {
-          "samples": 11847,
-          "mean_points_per_second": 15.529426364495203
+          "samples": 177994,
+          "mean_points_per_second": 17.10045819486794
         },
         "CENTER": {
-          "samples": 11843,
-          "mean_points_per_second": 12.735847667716634
+          "samples": 178395,
+          "mean_points_per_second": 13.246992678724501
         }
       }
     },
     "1|31+|2": {
       "action": "LEFT",
-      "samples": 2975,
-      "mean_points_per_second": 20.13217379772223,
+      "samples": 46041,
+      "mean_points_per_second": 22.486284006478126,
       "action_values": {
         "RIGHT": {
-          "samples": 4201,
-          "mean_points_per_second": 15.274690226183605
+          "samples": 62852,
+          "mean_points_per_second": 17.411026907956956
         },
         "LEFT": {
-          "samples": 2975,
-          "mean_points_per_second": 20.13217379772223
+          "samples": 46041,
+          "mean_points_per_second": 22.486284006478126
         },
         "CENTER": {
-          "samples": 3630,
-          "mean_points_per_second": 12.443924575098634
+          "samples": 54793,
+          "mean_points_per_second": 13.078144365950193
         }
       }
     },
     "1|0-10|2": {
       "action": "LEFT",
-      "samples": 2924,
-      "mean_points_per_second": 10.028376348312703,
+      "samples": 43180,
+      "mean_points_per_second": 11.542120070116043,
       "action_values": {
         "RIGHT": {
-          "samples": 3961,
-          "mean_points_per_second": 9.948815416487822
+          "samples": 58714,
+          "mean_points_per_second": 11.54115759453743
         },
         "CENTER": {
-          "samples": 3367,
-          "mean_points_per_second": 5.7629610800119995
+          "samples": 51188,
+          "mean_points_per_second": 6.562620694940071
         },
         "LEFT": {
-          "samples": 2924,
-          "mean_points_per_second": 10.028376348312703
+          "samples": 43180,
+          "mean_points_per_second": 11.542120070116043
         }
       }
     },
     "1|31+|0": {
       "action": "RIGHT",
-      "samples": 3027,
-      "mean_points_per_second": 20.06177420640842,
+      "samples": 45958,
+      "mean_points_per_second": 22.292556180145155,
       "action_values": {
         "RIGHT": {
-          "samples": 3027,
-          "mean_points_per_second": 20.06177420640842
+          "samples": 45958,
+          "mean_points_per_second": 22.292556180145155
         },
         "CENTER": {
-          "samples": 3640,
-          "mean_points_per_second": 12.634912324965685
+          "samples": 54661,
+          "mean_points_per_second": 13.097526175659361
         },
         "LEFT": {
-          "samples": 4329,
-          "mean_points_per_second": 16.424780829577017
+          "samples": 63253,
+          "mean_points_per_second": 17.262123980053502
         }
       }
     },
     "3|0-10|2": {
       "action": "RIGHT",
-      "samples": 5846,
-      "mean_points_per_second": 8.737855696845466,
+      "samples": 86417,
+      "mean_points_per_second": 9.691313787592536,
       "action_values": {
         "RIGHT": {
-          "samples": 5846,
-          "mean_points_per_second": 8.737855696845466
+          "samples": 86417,
+          "mean_points_per_second": 9.691313787592536
         },
         "CENTER": {
-          "samples": 5043,
-          "mean_points_per_second": 3.6167356409301528
+          "samples": 75156,
+          "mean_points_per_second": 4.202567938134698
         },
         "LEFT": {
-          "samples": 4196,
-          "mean_points_per_second": 8.03841329159452
+          "samples": 62975,
+          "mean_points_per_second": 8.800211966188922
         }
       }
     }

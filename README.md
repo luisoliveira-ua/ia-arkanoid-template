@@ -52,6 +52,14 @@ Arkanoid variant with JSON maps for training and evaluating AI agents, built on 
 - Group assignment (guide): [English](assets/trab-grupo-arkanoid-en.pdf), [Portuguese](assets/trab-grupo-arkanoid-pt.pdf).
 - Session slides (setup, metric, how to start): [presentation](assets/trab-grupo-arkanoid-slides.pdf).
 
+## Group members
+
+Fill in the three names and student numbers before submission:
+
+- `<Name 1>` — `<student number>`
+- `<Name 2>` — `<student number>`
+- `<Name 3>` — `<student number>`
+
 ## Quick Start
 
 Run everything from the repository root (config, maps and assets use relative paths). Python 3.12 is the reference version (3.10 is the minimum supported). An agent running in inference mode can only rely on the libraries in `pyproject.toml`.
@@ -85,7 +93,7 @@ Python 3.14 or newer: `pygame` has no wheel for it and the source build ends wit
 |---|---|---|
 | 1 | Backend (game server) | `python -m server.server` |
 | 2 | Viewer (Pygame window) | `python -m viewer.viewer` |
-| 3 | Agent (pick one) | `python student.py --id a12345` (student search agent), `python -m agents.dummy_agent --id a12345` (example bot), or `python -m agents.manual_agent --id a12345` (keyboard) |
+| 3 | Agent (pick one) | `python student.py --id a12345` (measured strategic agent), `python student.py --strategy rl --id a12345` (online Q-learning), `python -m agents.dummy_agent --id a12345` (example bot), or `python -m agents.manual_agent --id a12345` (keyboard) |
 
 Start the backend first, then the viewer, then the agent. The game starts when an agent connects; when it ends the server returns to the lobby and waits for a new agent.
 
@@ -122,9 +130,22 @@ All agents (run from the repository root, with the venv active) take the same op
 
 ```bash
 python student.py --id a12345 --name "Student Search Agent"                # predictive search agent
+python student.py --strategy rl --id a12345 --name "Student RL Agent"       # online reinforcement learning
 python -m agents.dummy_agent --id a12345 --name "Random bot"                  # random bot
 python -m agents.manual_agent --id a12345 --server ws://192.168.1.10:8765/ws   # keyboard, remote backend
 ```
+
+The `rl` strategy uses tabular Q-learning over paddle rebound choices (`LEFT`, `CENTER`, `RIGHT`). It starts with an empty table, explores only paddle zones that the strategic controller considers safely reachable, and saves its learned values to `training_data/rl_q_values.json` between runs. Use `--rl-epsilon 0` for evaluation without exploration, or `--rl-q-table PATH` to select a different checkpoint. The default `strategic` option continues to use the measured baseline policy.
+
+Train on the official game physics and compare the frozen learned policy against the strategic agent on held-out seeds:
+
+```bash
+python train_rl_agent.py --episodes 180 --eval-games 20
+```
+
+Training continues from the existing Q-table. The default 180 training games are split evenly across the three levels; evaluation uses 20 new seeds per level with exploration disabled. The checkpoint is saved to `training_data/rl_q_values.json`, and per-game training and evaluation results go to `training_data/rl_training_results.json`. Change `--episodes`, `--training-epsilon`, `--q-table`, or `--results` as needed.
+
+Training record: 480 games total (about 160 per level), followed by 20 paired validation seeds per level. The Q-table contains 90 states and 30,288 action updates. The RL policy cleared every validation game without losing a life, but its mean normalized score remained lower than the strategic agent: 14.73 vs. 17.30 points/s on level 1, 9.58 vs. 11.50 on level 2, and 7.94 vs. 8.88 on level 3. The paired 95% confidence intervals were below zero on levels 1 and 2 and included zero on level 3, so the strategic agent remains the default.
 
 The id comes from, in this order:
 
@@ -146,6 +167,36 @@ python sim_arkanoid.py --agent search --layouts 0 1 2 3 --games-per-layout 5 --l
 ```
 
 The simulator uses independent, simplified physics for repeatable policy comparisons; use the live server for final gameplay evaluation.
+
+### Official server benchmark
+
+`evaluate_student.py` runs paired seeds against the official server, one level at a time (`server.server --levels N`). It reports the mean and standard deviation of the server's `normalized_score`, clear rate, lives lost, server timeouts, and student decision latency. The default comparison is the follow-ball baseline against the student agent, with 20 games per level:
+
+```bash
+python evaluate_student.py --games 20 --agent both --levels 1 2 3 --acceleration 5
+```
+
+The complete per-game results are written to `evaluation_results.json`. `--transport logic` runs the same `Arkanoid` physics class used by the server in-process; `--transport live` launches the WebSocket server for transport and scheduling checks. Compare the paired 95% confidence interval for each level; a gain is credible only when its lower bound is above zero on all three levels. The server does not wait for the agent, so use the decision-latency fields when choosing an acceleration for live evaluation.
+
+Reference run (20 paired seeds, 16 midpoint angle samples per paddle zone, exact `server/logic.py` engine, seeds 20261116–20261135):
+
+| Level | Student mean normalized score ± SD | Baseline mean ± SD | Paired gain (95% CI) | Clear rate | Lives lost / timeouts | Max `deliberate()` |
+|---|---:|---:|---:|---:|---:|---:|
+| 1 | 18.17 ± 5.45 | 6.03 ± 3.33 | 12.14 [8.91, 15.37] | 20/20 | 0 / 0 | 12.44 ms |
+| 2 | 12.59 ± 1.91 | 7.45 ± 2.55 | 5.15 [3.72, 6.57] | 20/20 | 0 / 0 | 5.99 ms |
+| 3 | 9.17 ± 1.51 | 1.00 ± 2.05 | 8.17 [6.94, 9.41] | 20/20 | 0 / 0 | 7.58 ms |
+
+The paired confidence interval is above zero on all three maps, and every student episode cleared its level without losing a life or timing out. The 16-point/s target is met on level 1 but remains unmet on levels 2 and 3. The machine-readable per-game record is [`evaluation_final_logic.json`](evaluation_final_logic.json).
+
+The planner also simulates whether a rebound passes through a gap in the top row and reaches the upper channel. It prefers that route when at least 99% of angle samples enter the channel and its estimated rate is within 3% of the best option. Such high-confidence channel routes appeared in all three maps. A sustained scoring loop has a separate 99% threshold; its maximum observed estimates were 50% on level 1, 56.25% on level 2 and 31.25% on level 3, so the current physics and samples do not support claiming a 99% chance of a full loop. The benchmark uses the exact `server/logic.py` engine in process; it does not include WebSocket scheduling or substitute for a live-server run.
+
+## Five-page presentation outline
+
+1. **Objective and game model:** the normalized-score metric, map mechanics, and why short intervals between brick hits matter.
+2. **Agent architecture:** `student.py` entry point, observation parser, wall-reflected landing predictor, sampled trajectory evaluator, and paddle controller.
+3. **Planning decisions:** triangular angle distributions, expected points per second, safe reachable rebound zones, upper-channel entry and sustained-loop confidence, and why the large tree search is disabled in the real-time decision path.
+4. **Evaluation:** paired seeds, follow-ball baseline, official server protocol, per-level mean and standard deviation, clear rate, lives lost, timeouts, and per-tick latency.
+5. **Results and limitations:** strongest and weakest levels, remaining endgame cases, observed latency, and next improvements. Insert the final benchmark table before submission.
 
 ### Remote highscore upload (HTTP PUT)
 

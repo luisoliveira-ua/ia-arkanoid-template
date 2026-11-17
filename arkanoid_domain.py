@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import math
+import re
 from typing import Any
 from tree import SearchDomain, SearchProblem, SearchTree
 
@@ -24,6 +25,7 @@ class BrickState:
     health: int
     points: int
     indestructible: bool = False
+    max_health: int = 1
 
 
 @dataclass(frozen=True)
@@ -129,7 +131,12 @@ class ArkanoidSearchDomain(SearchDomain):
             side_angle_half_width=float(angles.get("beta_deg", 15.0)),
         )
         domain._initial_score = int(observation.get("level_score", observation.get("score", 0)))
-        domain.level_number = int(observation.get("stage", observation.get("level", 1)))
+        stage_number = int(observation.get("stage", observation.get("level", 1)))
+        map_name = str(observation.get("stage_name", observation.get("level_name", "")))
+        map_match = re.search(r"\b(?:stage|level)\s*(\d+)\b", map_name, re.IGNORECASE)
+        # `--levels 2` makes map 2 stage 1 in the server sequence. Prefer the
+        # map label so level-specific priors and routing rules stay correct.
+        domain.level_number = int(map_match.group(1)) if map_match else stage_number
         domain._initial_level_time = float(observation.get("level_time_elapsed", 0.0))
         limit = float(observation.get("level_time_limit", 0.0))
         domain._time_limit = max(0.0, limit - domain._initial_level_time) if limit > 0 else math.inf
@@ -141,6 +148,10 @@ class ArkanoidSearchDomain(SearchDomain):
                 # Metal remains a collision obstacle but never a reward target.
                 points=0 if bool(b.get("indestructible", False)) else int(b.get("points", 0)),
                 indestructible=bool(b.get("indestructible", False)),
+                max_health=max(
+                    1,
+                    int(b.get("max_health", b.get("hits_remaining", b.get("health", 1)))),
+                ),
             )
             for b in observation.get("bricks", [])
         )
@@ -549,9 +560,10 @@ class ArkanoidSearchDomain(SearchDomain):
         row_height: float,
     ) -> tuple[int, float]:
         """Simulate one sampled rebound until it returns to the paddle."""
-        return self._simulate_shot_details(
+        points, seconds, _ = self._simulate_shot_details(
             state, start_x, angle_deg, brick_rows, row_height
         )
+        return points, seconds
 
     def _simulate_shot_details(
         self,
@@ -560,13 +572,16 @@ class ArkanoidSearchDomain(SearchDomain):
         angle_deg: float,
         brick_rows: dict[int, list[int]],
         row_height: float,
-    ) -> tuple[int, float]:
-        """Return points and flight time for one sampled rebound.
+        details: dict[str, int] | None = None,
+    ) -> tuple[int, float, bool]:
+        """Return score rate inputs and whether the scoring roof route forms.
 
         The simulator advances directly from one swept collision to the next,
         using the same expanded-brick collision model for both dense and sparse
         boards. If a closed path repeats before returning to the paddle, charge
         the full flight horizon so trapped trajectories do not inflate points/s.
+        A scoring roof route requires repeated ceiling and upper-brick contacts
+        plus points earned from upper bricks.
         """
         x, y = start_x, self.paddle_y - self.ball_radius
         angle = math.radians(angle_deg)
@@ -579,9 +594,77 @@ class ArkanoidSearchDomain(SearchDomain):
         last_hit: int | None = None
         ceiling = self.ceiling_y + self.ball_radius
         paddle_plane = self.paddle_y - self.ball_radius
+        top_obstacles = [
+            brick for brick in bricks
+            if brick.health > 0 or brick.indestructible
+        ]
+        top_row_y = min((brick.y for brick in top_obstacles), default=ceiling)
+        top_row = [brick for brick in top_obstacles if brick.y <= top_row_y + 1.0]
+        occupied_intervals = sorted(
+            (
+                max(self.ball_radius, brick.x - self.ball_radius),
+                min(self.width - self.ball_radius,
+                    brick.x + brick.width + self.ball_radius),
+            )
+            for brick in top_row
+        )
+        merged_intervals: list[tuple[float, float]] = []
+        for interval_left, interval_right in occupied_intervals:
+            if merged_intervals and interval_left <= merged_intervals[-1][1]:
+                previous_left, previous_right = merged_intervals[-1]
+                merged_intervals[-1] = (previous_left, max(previous_right, interval_right))
+            else:
+                merged_intervals.append((interval_left, interval_right))
+        entry_gaps: list[tuple[float, float]] = []
+        gap_start = self.ball_radius
+        for interval_left, interval_right in merged_intervals:
+            if interval_left > gap_start:
+                entry_gaps.append((gap_start, interval_left))
+            gap_start = max(gap_start, interval_right)
+        if gap_start < self.width - self.ball_radius:
+            entry_gaps.append((gap_start, self.width - self.ball_radius))
+        tunnel_plane = max(top_row_y - self.ball_radius, ceiling)
+        upper_channel_entries = 0
+        ceiling_bounces = 0
+        upper_brick_hits = 0
+        upper_points = 0
+        top_brick_hits = 0
+        top_points = 0
+        upper_limit = ceiling + 0.35 * (self.paddle_y - ceiling)
+        if details is not None:
+            destructible_ys = [
+                brick.y for brick in bricks
+                if brick.health > 0 and not brick.indestructible
+            ]
+            top_zone_limit = (
+                min(destructible_ys)
+                + max(24.0, 0.35 * (max(destructible_ys) - min(destructible_ys)))
+                if destructible_ys else ceiling
+            )
+        else:
+            top_zone_limit = ceiling - 1.0
         # Once a destructible brick changes health, old positions no longer
         # describe the same physical state. Clear cycle history at that point.
         seen_states: set[tuple[float, float, int, int, int | None]] = set()
+
+        def formed_scoring_upper_loop() -> bool:
+            return (
+                ceiling_bounces >= 2
+                and upper_brick_hits >= 2
+                and upper_points > 0
+            )
+
+        def finish(flight_seconds: float) -> tuple[int, float, bool]:
+            if details is not None:
+                details.update({
+                    "ceiling_bounces": ceiling_bounces,
+                    "upper_brick_hits": upper_brick_hits,
+                    "upper_points": upper_points,
+                    "top_brick_hits": top_brick_hits,
+                    "top_points": top_points,
+                    "upper_channel_entries": upper_channel_entries,
+                })
+            return points, flight_seconds, formed_scoring_upper_loop()
 
         for _ in range(2048):
             if last_hit is not None:
@@ -613,7 +696,7 @@ class ArkanoidSearchDomain(SearchDomain):
                     boundary_time, boundary_kind = candidate, "paddle"
 
             if boundary_time <= 1e-12 and boundary_kind == "limit":
-                return points, self.max_flight_seconds
+                return finish(self.max_flight_seconds)
 
             end_x = x + vx * boundary_time
             end_y = y + vy * boundary_time
@@ -629,6 +712,15 @@ class ArkanoidSearchDomain(SearchDomain):
                 vx, vy, bricks, last_hit, candidate_indices,
             )
 
+            if entry_gaps and vy < 0.0:
+                segment_fraction = impact[1] if impact is not None else 1.0
+                segment_end_y = y + vy * boundary_time * segment_fraction
+                if segment_end_y < y and y >= tunnel_plane >= segment_end_y:
+                    crossing_fraction = (tunnel_plane - y) / (segment_end_y - y)
+                    crossing_x = x + vx * boundary_time * segment_fraction * crossing_fraction
+                    if any(left <= crossing_x <= right for left, right in entry_gaps):
+                        upper_channel_entries += 1
+
             if impact is None:
                 x, y = end_x, end_y
                 elapsed += boundary_time
@@ -638,29 +730,43 @@ class ArkanoidSearchDomain(SearchDomain):
                 elif boundary_kind == "ceiling":
                     vy = -vy
                     y = ceiling
+                    ceiling_bounces += 1
                 elif boundary_kind == "paddle":
-                    return points, elapsed
+                    return finish(elapsed)
                 else:
-                    return points, self.max_flight_seconds
+                    return finish(self.max_flight_seconds)
             else:
                 hit_index, fraction, face = impact
                 x += vx * boundary_time * fraction
                 y += vy * boundary_time * fraction
                 elapsed += boundary_time * fraction
                 brick = bricks[hit_index]
+                if brick.y <= upper_limit:
+                    upper_brick_hits += 1
+                if details is not None and brick.y <= top_zone_limit:
+                    top_brick_hits += 1
                 if not brick.indestructible:
                     health = brick.health - 1
+                    # Credit each useful damage event at its eventual share of
+                    # the brick's reward. Server points remain awarded only on
+                    # destruction; the planner should not treat earlier hits
+                    # on durable bricks as worthless.
+                    damage_reward = brick.points / max(1, brick.max_health)
+                    points += int(round(damage_reward))
+                    if brick.y <= upper_limit:
+                        upper_points += int(round(damage_reward))
+                    if details is not None and brick.y <= top_zone_limit:
+                        top_points += int(round(damage_reward))
                     bricks[hit_index] = BrickState(
                         brick.x, brick.y, brick.width, brick.height,
-                        health, brick.points, brick.indestructible,
+                        health, brick.points, brick.indestructible, brick.max_health,
                     )
                     # A changed board invalidates any previously seen cycle.
                     seen_states.clear()
                     if health <= 0:
-                        points += brick.points
                         remaining_brick_count -= 1
                         if remaining_brick_count <= 0:
-                            return points, elapsed
+                            return finish(elapsed)
                 if face == "x":
                     vx = -vx
                     x += math.copysign(0.01, vx)
@@ -674,10 +780,10 @@ class ArkanoidSearchDomain(SearchDomain):
                 1 if vx > 0 else -1, 1 if vy > 0 else -1, last_hit,
             )
             if signature in seen_states:
-                return points, self.max_flight_seconds
+                return finish(self.max_flight_seconds)
             seen_states.add(signature)
 
-        return points, self.max_flight_seconds
+        return finish(self.max_flight_seconds)
 
     def result(self, state: ArkanoidState, action: str) -> ArkanoidState:
         """Apply a rebound choice and simulate the next ball flight."""
@@ -732,7 +838,8 @@ class ArkanoidSearchDomain(SearchDomain):
                 if not brick.indestructible:
                     health = brick.health - 1
                     bricks[hit_index] = BrickState(brick.x, brick.y, brick.width, brick.height,
-                                                   health, brick.points, brick.indestructible)
+                                                   health, brick.points, brick.indestructible,
+                                                   brick.max_health)
                     if health <= 0:
                         score += brick.points
                 if x < brick.x - self.ball_radius or x > brick.x + brick.width + self.ball_radius:
