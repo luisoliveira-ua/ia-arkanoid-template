@@ -151,7 +151,6 @@ class ArkanoidGameServer(interface.GameInterface):
         """Serialize current state for agents and viewer."""
         state = self.game.get_state()
         state["player_id"] = self.player_id
-        state["acceleration"] = self.acceleration
         return state
 
     def get_setup_payload(self) -> dict[str, Any]:
@@ -201,7 +200,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--share-highscore",
         action=argparse.BooleanOptionalAction,
         default=False,
-        help="Persist scores to the local CSV file (highscores.csv) and upload the avg_norm_score (default: off)",
+        help="Persist scores to the local CSV file (highscores.csv) and upload the normalized score (default: off)",
     )
     return parser
 

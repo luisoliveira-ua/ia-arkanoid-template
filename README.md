@@ -93,7 +93,7 @@ Python 3.14 or newer: `pygame` has no wheel for it and the source build ends wit
 |---|---|---|
 | 1 | Backend (game server) | `python -m server.server` |
 | 2 | Viewer (Pygame window) | `python -m viewer.viewer` |
-| 3 | Agent (pick one) | `python student.py --id a12345` (measured strategic agent), `python student.py --strategy rl --id a12345` (online Q-learning), `python -m agents.dummy_agent --id a12345` (example bot), or `python -m agents.manual_agent --id a12345` (keyboard) |
+| 3 | Agent (pick one) | `python student.py --id a12345` (expectimax planner, default), `python student.py --strategy strategic --id a12345` (previous strategic agent), `python student.py --strategy rl --id a12345` (online Q-learning), `python -m agents.dummy_agent --id a12345` (example bot), or `python -m agents.manual_agent --id a12345` (keyboard) |
 
 Start the backend first, then the viewer, then the agent. The game starts when an agent connects; when it ends the server returns to the lobby and waits for a new agent.
 
@@ -129,13 +129,14 @@ All agents (run from the repository root, with the venv active) take the same op
 | `--id TEXT` | `AGENT_ID` variable, else random | Agent id, sent to the backend in the handshake. It identifies the agent and is the key used to rank it in the dashboard. |
 
 ```bash
-python student.py --id a12345 --name "Student Search Agent"                # predictive search agent
+python student.py --id a12345 --name "Student Search Agent"                # expectimax planner (default)
+python student.py --strategy strategic --id a12345                          # previous strategic agent
 python student.py --strategy rl --id a12345 --name "Student RL Agent"       # online reinforcement learning
 python -m agents.dummy_agent --id a12345 --name "Random bot"                  # random bot
 python -m agents.manual_agent --id a12345 --server ws://192.168.1.10:8765/ws   # keyboard, remote backend
 ```
 
-The `rl` strategy uses tabular Q-learning over paddle rebound choices (`LEFT`, `CENTER`, `RIGHT`). It starts with an empty table, explores only paddle zones that the strategic controller considers safely reachable, and saves its learned values to `training_data/rl_q_values.json` between runs. Use `--rl-epsilon 0` for evaluation without exploration, or `--rl-q-table PATH` to select a different checkpoint. The default `strategic` option continues to use the measured baseline policy.
+The `rl` strategy uses tabular Q-learning over paddle rebound choices (`LEFT`, `CENTER`, `RIGHT`). It starts with an empty table, explores only paddle zones that the strategic controller considers safely reachable, and saves its learned values to `training_data/rl_q_values.json` between runs. Use `--rl-epsilon 0` for evaluation without exploration, or `--rl-q-table PATH` to select a different checkpoint. The `strategic` option keeps the previous measured baseline policy.
 
 Train on the official game physics and compare the frozen learned policy against the strategic agent on held-out seeds:
 
@@ -156,6 +157,26 @@ The id comes from, in this order:
 The backend keeps only `[A-Za-z0-9._-]` and at most 64 characters of the id (empty after cleaning: it generates a random one) and includes it in the uploaded score (below).
 
 Custom agents subclass `BaseAgent(server_uri, name, agent_id)` and implement `deliberate()`; when the agent stops (game won, game over, level time limit reached, connection lost) `BaseAgent` prints a summary on the terminal (stop reason, level, score, `avg_norm_score`, game time, lives, high score); `BaseAgent` resolves the id (`agent_id` or random) and sends `{"client": "agent", "name": ..., "id": ...}` in the handshake. The viewer takes only `--server` (WebSocket URI, default `ws://localhost:8765/ws`).
+
+### Expectimax planner (default agent)
+
+`student.py` runs [`ExpectimaxAgent`](agents/expectimax_agent.py) unless `--strategy` says otherwise. Every hit is worth 50 points (a brick's points equal 50 times its hits), so a level's points are fixed and the normalized score depends only on how fast the level is cleared.
+
+- **Exact flight model** ([`agents/fast_physics.py`](agents/fast_physics.py)): between two paddle contacts nothing is random, so the agent replays the server's swept collisions event by event (walls, ceiling, brick normals, nudges, clamps and tie order of `server/logic.py`). A flight takes about 25 µs to simulate, and the predicted contact matches the engine to 1e-11 px (checked in `tests/test_expectimax_agent.py`). As soon as the ball leaves the paddle the agent knows where and when it will come back and which bricks it will have broken. The search simulates its many flights with `fly_batch`, a numpy version of the same event loop that advances hundreds of balls at once (identical results, 2–4× faster).
+- **Decision**: for that contact it compares the reachable paddle zones (left, center, right). Each zone is sampled with 32 stratified quantiles of the server's triangular angle distribution, and each outcome is scored as `hits - rho * seconds` plus the discounted value of the contact the ball returns to. `rho` is 0.35 of the level's observed hit rate: time is deliberately priced low because flights that get above the wall break many bricks.
+- **Contact values**: value iteration over a 100-point grid of contact positions (12 angle samples per zone) gives the value of every return position on the current board, so the agent aims several rebounds ahead. The most frequent boards a rebound can leave behind get their own coarser tables. That is how it sees a rebound that opens a way into the upper channel.
+- **Real time**: the search runs as a generator spread across ticks. It spends at most 12 ms per tick (or 40% of the observed time between states on a faster server) and deepens from greedy to the full plan. The paddle commits when it must start moving and then steps on the 28 px lattice to the exact position that puts the contact inside the chosen zone.
+
+Paired comparison on the exact engine (`server/logic.py` in process, 44 seeds per level, seeds 70000–70043, no lives lost by either agent):
+
+| Level | Previous strategic agent | Expectimax planner |
+|---|---:|---:|
+| 1 | 16.80 | 18.58 |
+| 2 | 11.34 | 12.81 |
+| 3 | 9.10 | 10.14 |
+| Mean (`avg_norm_score`) | 12.42 | 13.84 |
+
+Things that did not help, measured on 33–44 seeds per level: deeper sampled expectimax (2–3 rebounds; the max over a few chaotic samples is optimistic), more samples and finer grids, a per-second discount, and a higher time price near the end of a level. Measured later on 60 seeds per level (seeds 600–659, paired against the default, 13.67): `GAMMA` 0.6 (+0.10 ± 0.26), rollouts of whole rebound sequences ([`agents/rollout_agent.py`](agents/rollout_agent.py), −0.44 ± 0.28), the exact time-to-clear solver from 3, 6 or 10 hits left (+0.08, −0.02, −0.01), and the learned time-to-clear network ([`agents/value_agent.py`](agents/value_agent.py), trained by `train_value.py`, −0.60 ± 0.29). On fresh seeds 700–759 (default 13.53): `RHO_SCALE` 0.25, the best value of the 60-seed screening, −0.42 ± 0.17; a network trained on 900 games of the expectimax agent itself with TD(λ) targets (`train_expectimax_value.py`) −1.33 ± 0.27 deciding alone and −0.67 ± 0.30 when it may overrule the search only to save more than 1 s. An exact second rebound under every sampled root outcome ([`agents/deep_agent.py`](agents/deep_agent.py), 16 root and 24 child angle samples per zone, all child flights on `fly_batch` with one board per ball) scored 12.89 on seeds 600–659 (−0.78 against the default): with three zones and wide random cones the best child zone of a sampled mean is optimistic, and the search prefers rebounds whose outcomes merely look lucky. The last three hits take 22 s (level 1) to 57 s (level 3): even from the best contact a lone brick is hit by only 40–75% of the flights. A single game varies by ±3–5 points/s because the angle is random at every rebound, so compare configurations on at least 30 seeds per level.
 
 ### Local agent benchmark
 

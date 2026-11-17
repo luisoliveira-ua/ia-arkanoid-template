@@ -1,15 +1,20 @@
-"""Entry point for the Arkanoid strategic and reinforcement-learning agents."""
+"""Entry point for the Arkanoid agents (expectimax planner by default, strategic and RL alternatives)."""
 
 import argparse
 import asyncio
 from pathlib import Path
 
+from agents.expectimax_agent import ExpectimaxAgent
 from agents.rl_agent import DEFAULT_Q_PATH, ReinforcementAgent
 from agents.strategic_agent import StrategicAgent
 
 
-class StudentAgent(StrategicAgent):
-    """Submission-facing agent class using sampled strategic planning."""
+class StudentAgent(ExpectimaxAgent):
+    """Submission-facing agent: exact-physics expectimax planning of every paddle rebound."""
+
+
+class StudentStrategicAgent(StrategicAgent):
+    """Previous submission agent using sampled strategic planning on approximate physics."""
 
 
 AGENT_ID: str | None = None  # Set this to a group member's student number.
@@ -22,9 +27,10 @@ def main() -> None:
     parser.add_argument("--id", default=None)
     parser.add_argument(
         "--strategy",
-        choices=("strategic", "rl"),
-        default="strategic",
-        help="strategic keeps the measured baseline; rl learns a rebound policy online",
+        choices=("expectimax", "strategic", "rl"),
+        default="expectimax",
+        help="expectimax plans on exact physics (fastest clears); strategic is the previous baseline; "
+        "rl learns a rebound policy online",
     )
     parser.add_argument(
         "--rl-epsilon",
@@ -47,6 +53,8 @@ def main() -> None:
             epsilon=args.rl_epsilon,
             q_path=args.rl_q_table,
         )
+    elif args.strategy == "strategic":
+        agent = StudentStrategicAgent(args.server, args.name, args.id or AGENT_ID)
     else:
         agent = StudentAgent(args.server, args.name, args.id or AGENT_ID)
     asyncio.run(agent.run())
