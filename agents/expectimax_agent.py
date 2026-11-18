@@ -18,6 +18,7 @@ that puts the contact inside the chosen zone.
 
 from __future__ import annotations
 
+import math
 import time
 from collections import deque
 from collections.abc import Generator
@@ -69,6 +70,7 @@ class ExpectimaxAgent(BaseAgent):
         self._last_timer: float | None = None
         self._last_wall: float | None = None
         self._interval = 1.0 / 30.0
+        self._stride = 1.0  # mean server ticks between the states this agent answers
         self.max_depth_reached: list[int] = []
         self._flight_cache: dict[tuple[Any, ...], dict[str, Any]] = {}
         self._tables: dict[tuple[int, ...], Any] = {}
@@ -328,6 +330,11 @@ class ExpectimaxAgent(BaseAgent):
         timer = state.get("time_elapsed")
         if timer is not None and timer == self._last_timer:
             return None  # stale duplicate: our previous move may not be applied yet
+        if timer is not None and self._last_timer is not None:
+            # Server ticks between the states we answer: on a slow machine or an accelerated server we
+            # see fewer states, so the paddle gets fewer moves per tick and must start moving earlier.
+            gap = max(1, round((float(timer) - float(self._last_timer)) * 30.0))
+            self._stride = 0.8 * self._stride + 0.2 * min(gap, 10)
         self._last_timer = timer
         now = time.perf_counter()
         if self._last_wall is not None:
@@ -346,7 +353,8 @@ class ExpectimaxAgent(BaseAgent):
         t, _, cleared, contact_x, contact_health = fly(geo, health, bx, by, bvx, bvy)
         if cleared:
             return None
-        ticks_left = int(t * geo.fps)
+        stride = math.ceil(self._stride - 0.05)  # server ticks per state we answer (1 when we keep up)
+        ticks_left = int(t * geo.fps) // stride  # moves the paddle can still make before the contact
         key = tuple(contact_health)
         if key != self._plan_key or abs(contact_x - self._contact_x) > 0.01:
             self._plan_key = key

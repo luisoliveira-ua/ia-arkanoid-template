@@ -52,14 +52,6 @@ Arkanoid variant with JSON maps for training and evaluating AI agents, built on 
 - Group assignment (guide): [English](assets/trab-grupo-arkanoid-en.pdf), [Portuguese](assets/trab-grupo-arkanoid-pt.pdf).
 - Session slides (setup, metric, how to start): [presentation](assets/trab-grupo-arkanoid-slides.pdf).
 
-## Group members
-
-Fill in the three names and student numbers before submission:
-
-- `<Name 1>` — `<student number>`
-- `<Name 2>` — `<student number>`
-- `<Name 3>` — `<student number>`
-
 ## Quick Start
 
 Run everything from the repository root (config, maps and assets use relative paths). Python 3.12 is the reference version (3.10 is the minimum supported). An agent running in inference mode can only rely on the libraries in `pyproject.toml`.
@@ -93,7 +85,7 @@ Python 3.14 or newer: `pygame` has no wheel for it and the source build ends wit
 |---|---|---|
 | 1 | Backend (game server) | `python -m server.server` |
 | 2 | Viewer (Pygame window) | `python -m viewer.viewer` |
-| 3 | Agent (pick one) | `python student.py --id a12345` (expectimax planner), `python -m agents.dummy_agent --id a12345` (ball-following example bot), or `python -m agents.manual_agent --id a12345` (keyboard) |
+| 3 | Agent (pick one) | `python -m agents.dummy_agent --id a12345` (bot) or `python -m agents.manual_agent --id a12345` (keyboard) |
 
 Start the backend first, then the viewer, then the agent. The game starts when an agent connects; when it ends the server returns to the lobby and waits for a new agent.
 
@@ -120,7 +112,7 @@ python -m server.server --levels 3 --level-time-limit 300       # level 3 only, 
 
 ### Agent options
 
-All agents (run from the repository root, with the venv active) take the same options:
+Both example agents (run from the repository root, with the venv active) take the same options:
 
 | Option | Default | Description |
 |---|---|---|
@@ -129,8 +121,7 @@ All agents (run from the repository root, with the venv active) take the same op
 | `--id TEXT` | `AGENT_ID` variable, else random | Agent id, sent to the backend in the handshake. It identifies the agent and is the key used to rank it in the dashboard. |
 
 ```bash
-python student.py --id a12345 --name "Student Agent"                       # expectimax planner
-python -m agents.dummy_agent --id a12345 --name "Follow bot"                  # ball-following bot
+python -m agents.dummy_agent --id a12345 --name "Random bot"                  # random bot
 python -m agents.manual_agent --id a12345 --server ws://192.168.1.10:8765/ws   # keyboard, remote backend
 ```
 
@@ -143,83 +134,6 @@ The id comes from, in this order:
 The backend keeps only `[A-Za-z0-9._-]` and at most 64 characters of the id (empty after cleaning: it generates a random one) and includes it in the uploaded score (below).
 
 Custom agents subclass `BaseAgent(server_uri, name, agent_id)` and implement `deliberate()`; when the agent stops (game won, game over, level time limit reached, connection lost) `BaseAgent` prints a summary on the terminal (stop reason, level, score, `avg_norm_score`, game time, lives, high score); `BaseAgent` resolves the id (`agent_id` or random) and sends `{"client": "agent", "name": ..., "id": ...}` in the handshake. The viewer takes only `--server` (WebSocket URI, default `ws://localhost:8765/ws`).
-
-### Expectimax planner (default agent)
-
-`student.py` runs [`ExpectimaxAgent`](agents/expectimax_agent.py). Every hit is worth 50 points (a brick's points equal 50 times its hits), so a level's points are fixed and the normalized score depends only on how fast the level is cleared.
-
-- **Exact flight model** ([`agents/fast_physics.py`](agents/fast_physics.py)): between two paddle contacts nothing is random, so the agent replays the server's swept collisions event by event (walls, ceiling, brick normals, nudges, clamps and tie order of `server/logic.py`). A flight takes about 25 µs to simulate, and the predicted contact matches the engine to 1e-11 px (checked in `tests/test_expectimax_agent.py`). As soon as the ball leaves the paddle the agent knows where and when it will come back and which bricks it will have broken. The search simulates its many flights with `fly_batch`, a numpy version of the same event loop that advances hundreds of balls at once (identical results, 2–4× faster).
-- **Decision**: for that contact it compares the reachable paddle zones (left, center, right). Each zone is sampled with 32 stratified quantiles of the server's triangular angle distribution, and each outcome is scored as `hits - rho * seconds` plus the discounted value of the contact the ball returns to. `rho` is 0.35 of the level's observed hit rate: time is deliberately priced low because flights that get above the wall break many bricks.
-- **Contact values**: value iteration over a 100-point grid of contact positions (12 angle samples per zone) gives the value of every return position on the current board, so the agent aims several rebounds ahead. The most frequent boards a rebound can leave behind get their own coarser tables. That is how it sees a rebound that opens a way into the upper channel.
-- **Real time**: the search runs as a generator spread across ticks. It spends at most 12 ms per tick (or 40% of the observed time between states on a faster server) and deepens from greedy to the full plan. The paddle commits when it must start moving and then steps on the 28 px lattice to the exact position that puts the contact inside the chosen zone.
-
-Paired comparison on the exact engine (`server/logic.py` in process, 44 seeds per level, seeds 70000–70043, no lives lost by either agent):
-
-| Level | Previous strategic agent | Expectimax planner |
-|---|---:|---:|
-| 1 | 16.80 | 18.58 |
-| 2 | 11.34 | 12.81 |
-| 3 | 9.10 | 10.14 |
-| Mean (`avg_norm_score`) | 12.42 | 13.84 |
-
-Things that did not help, measured on 33–44 seeds per level: deeper sampled expectimax (2–3 rebounds; the max over a few chaotic samples is optimistic), more samples and finer grids, a per-second discount, and a higher time price near the end of a level. Measured later on 60 seeds per level (seeds 600–659, paired against the default, 13.67): `GAMMA` 0.6 (+0.10 ± 0.26), rollouts of whole rebound sequences ([`experiments/rollout_agent.py`](experiments/rollout_agent.py), −0.44 ± 0.28), the exact time-to-clear solver from 3, 6 or 10 hits left (+0.08, −0.02, −0.01), and the learned time-to-clear network ([`experiments/value_agent.py`](experiments/value_agent.py), trained by `experiments/train_value.py`, −0.60 ± 0.29). On fresh seeds 700–759 (default 13.53): `RHO_SCALE` 0.25, the best value of the 60-seed screening, −0.42 ± 0.17; a network trained on 900 games of the expectimax agent itself with TD(λ) targets (`experiments/train_expectimax_value.py`) −1.33 ± 0.27 deciding alone and −0.67 ± 0.30 when it may overrule the search only to save more than 1 s. An exact second rebound under every sampled root outcome ([`experiments/deep_agent.py`](experiments/deep_agent.py), 16 root and 24 child angle samples per zone, all child flights on `fly_batch` with one board per ball) scored 12.89 on seeds 600–659 (−0.78 against the default): with three zones and wide random cones the best child zone of a sampled mean is optimistic, and the search prefers rebounds whose outcomes merely look lucky. Weighting each hit by how often its brick is still standing with 6 hits left in recorded expectimax games ([`experiments/tail_agent.py`](experiments/tail_agent.py), rates from `experiments/tail_weights.py`; e.g. the level 2 yellow brick 81%, the level 3 corner greens 70–75%) shortened the tail a little but slowed the rest: −0.22 ± 0.20 (weight 1) and −0.31 ± 0.28 (weight 3) on seeds 600–659. Level 1's ceiling loop (the ball trapped between the ceiling and the top row) breaks about 1.5 bricks/s against 0.13 from below: 14 of the 34 bricks in only 9 s of a 166 s level, and fast games are the ones that get there early. The ball gets up through the 35 px gap next to a side wall in 23 of 24 games. Neither favouring the outermost columns ([`experiments/channel_agent.py`](experiments/channel_agent.py): −0.28 ± 0.53 at weight 1, −1.26 ± 0.56 at weight 3 on level 1) nor a 4× finer value grid (200 contacts × 24 angles: −0.18 ± 0.44 on level 1) gets it there sooner: the exact flights already count the loop's hits, and a way in exists only from a few contacts and angles. The last three hits take 22 s (level 1) to 57 s (level 3): even from the best contact a lone brick is hit by only 40–75% of the flights. A single game varies by ±3–5 points/s because the angle is random at every rebound, so compare configurations on at least 30 seeds per level.
-
-### Earlier agents and experiments
-
-Everything the submission does not use lives in [`experiments/`](experiments/README.md): the earlier strategic, search and Q-learning agents, every variant measured against the expectimax planner, their training and tuning scripts, and their data. Run those scripts as modules from the repository root. The numbers below are for the earlier strategic agent.
-
-#### Local benchmark (simplified physics)
-
-`experiments/sim_arkanoid.py` runs either agent without starting the server or viewer and prints score rate, lives lost, contacts, and wins as JSON:
-
-```bash
-python -m experiments.sim_arkanoid --agent student --layouts 0 1 2 3 --games-per-layout 5
-python -m experiments.sim_arkanoid --agent search --layouts 0 1 2 3 --games-per-layout 5 --latency 1 --contact plane
-```
-
-The simulator uses independent, simplified physics for repeatable policy comparisons; use the live server for final gameplay evaluation.
-
-#### Official server benchmark
-
-`experiments/evaluate_student.py` runs paired seeds against the official server, one level at a time (`server.server --levels N`). It reports the mean and standard deviation of the server's `normalized_score`, clear rate, lives lost, server timeouts, and student decision latency. The default comparison is the follow-ball baseline against the student agent, with 20 games per level:
-
-```bash
-python -m experiments.evaluate_student --games 20 --agent both --levels 1 2 3 --acceleration 5
-```
-
-The complete per-game results are written to `experiments/results/evaluation_results.json`. `--transport logic` runs the same `Arkanoid` physics class used by the server in-process; `--transport live` launches the WebSocket server for transport and scheduling checks. Compare the paired 95% confidence interval for each level; a gain is credible only when its lower bound is above zero on all three levels. The server does not wait for the agent, so use the decision-latency fields when choosing an acceleration for live evaluation.
-
-Reference run (20 paired seeds, 16 midpoint angle samples per paddle zone, exact `server/logic.py` engine, seeds 20261116–20261135):
-
-| Level | Student mean normalized score ± SD | Baseline mean ± SD | Paired gain (95% CI) | Clear rate | Lives lost / timeouts | Max `deliberate()` |
-|---|---:|---:|---:|---:|---:|---:|
-| 1 | 18.17 ± 5.45 | 6.03 ± 3.33 | 12.14 [8.91, 15.37] | 20/20 | 0 / 0 | 12.44 ms |
-| 2 | 12.59 ± 1.91 | 7.45 ± 2.55 | 5.15 [3.72, 6.57] | 20/20 | 0 / 0 | 5.99 ms |
-| 3 | 9.17 ± 1.51 | 1.00 ± 2.05 | 8.17 [6.94, 9.41] | 20/20 | 0 / 0 | 7.58 ms |
-
-The paired confidence interval is above zero on all three maps, and every student episode cleared its level without losing a life or timing out. The 16-point/s target is met on level 1 but remains unmet on levels 2 and 3. The machine-readable per-game record is [`experiments/results/evaluation_final_logic.json`](experiments/results/evaluation_final_logic.json).
-
-The planner also simulates whether a rebound passes through a gap in the top row and reaches the upper channel. It prefers that route when at least 99% of angle samples enter the channel and its estimated rate is within 3% of the best option. Such high-confidence channel routes appeared in all three maps. A sustained scoring loop has a separate 99% threshold; its maximum observed estimates were 50% on level 1, 56.25% on level 2 and 31.25% on level 3, so the current physics and samples do not support claiming a 99% chance of a full loop. The benchmark uses the exact `server/logic.py` engine in process; it does not include WebSocket scheduling or substitute for a live-server run.
-
-#### Tabular Q-learning agent
-
-Train on the official game physics and compare the frozen learned policy against the strategic agent on held-out seeds:
-
-```bash
-python -m experiments.train_rl_agent --episodes 180 --eval-games 20
-```
-
-Training continues from the existing Q-table. The default 180 training games are split evenly across the three levels; evaluation uses 20 new seeds per level with exploration disabled. The checkpoint is saved to `experiments/training_data/rl_q_values.json`, and per-game training and evaluation results go to `experiments/training_data/rl_training_results.json`. Change `--episodes`, `--training-epsilon`, `--q-table`, or `--results` as needed.
-
-Training record: 480 games total (about 160 per level), followed by 20 paired validation seeds per level. The Q-table contains 90 states and 30,288 action updates. The RL policy cleared every validation game without losing a life, but its mean normalized score remained lower than the strategic agent: 14.73 vs. 17.30 points/s on level 1, 9.58 vs. 11.50 on level 2, and 7.94 vs. 8.88 on level 3. The paired 95% confidence intervals were below zero on levels 1 and 2 and included zero on level 3, so the strategic agent remains the default.
-
-## Five-page presentation outline
-
-1. **Objective and game model:** the normalized-score metric, map mechanics, and why short intervals between brick hits matter.
-2. **Agent architecture:** `student.py` entry point, exact flight model (`fast_physics.py`, scalar and vectorized), expectimax planner with value-iterated contact values, real-time search spread across ticks, and paddle controller.
-3. **Planning decisions:** triangular angle distributions, `hits - rho * seconds` with a low time price, reachable rebound zones, next-board tables, and the measured ideas that did not help.
-4. **Evaluation:** paired seeds, follow-ball baseline, official server protocol, per-level mean and standard deviation, clear rate, lives lost, timeouts, and per-tick latency.
-5. **Results and limitations:** strongest and weakest levels, remaining endgame cases, observed latency, and next improvements. Insert the final benchmark table before submission.
 
 ### Remote highscore upload (HTTP PUT)
 

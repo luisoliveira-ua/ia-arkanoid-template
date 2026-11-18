@@ -3,6 +3,7 @@
 import asyncio
 import json
 import logging
+import time
 import uuid
 from typing import Any
 
@@ -75,6 +76,23 @@ class BaseAgent:
                 try:
                     while True:
                         data = await states.get()
+                        # States that piled up while deliberate() ran are stale (the server does not wait):
+                        # let the receiver read what is already buffered and keep only the newest one.
+                        # The end of the game is never skipped, and the catch-up is capped at 2 ms because a fast
+                        # server always has a newer state on the way.
+                        idle, closing = 0, False
+                        catch_up_end = time.perf_counter() + 0.002
+                        while (data is not None and idle < 2 and time.perf_counter() < catch_up_end
+                               and not (data.get("game_won") or data.get("game_over"))):
+                            await asyncio.sleep(0)
+                            if states.empty():
+                                idle += 1
+                                continue
+                            newer, idle = states.get_nowait(), 0
+                            if newer is None:  # connection closed: still answer the last state
+                                closing = True
+                                break
+                            data = newer
                         if data is None:
                             break
 
@@ -91,6 +109,8 @@ class BaseAgent:
                         action = await self.deliberate()
                         if action is not None:
                             await websocket.send(json.dumps(action))
+                        if closing:
+                            break
                 finally:
                     receiver.cancel()
                     try:
