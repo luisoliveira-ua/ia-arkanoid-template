@@ -231,3 +231,4 @@ experiments/training_data/rl_q_values.json
 experiments/training_data/rl_q_values.json.tmp
 experiments/training_data/rl_training_results.json
 experiments/training_data/rollouts_*.csv.gz
+.agents/

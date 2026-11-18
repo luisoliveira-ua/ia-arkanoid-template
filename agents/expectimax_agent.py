@@ -397,8 +397,7 @@ if __name__ == "__main__":
     import asyncio
 
     parser = argparse.ArgumentParser(description="Expectimax Arkanoid agent")
-    parser.add_argument("--server", default="ws://localhost:8765/ws")
-    parser.add_argument("--name", default="Expectimax Agent")
-    parser.add_argument("--id", default=None)
+    parser.add_argument("-s", "--server", default="ws://localhost:8765/ws", help="WebSocket URI")
+    parser.add_argument("-n", "--name", default="Expectimax Agent", help="Agent name shown in the dashboard")
     args = parser.parse_args()
-    asyncio.run(ExpectimaxAgent(args.server, args.name, args.id).run())
+    asyncio.run(ExpectimaxAgent(args.server, args.name).run())

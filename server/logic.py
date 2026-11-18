@@ -36,7 +36,7 @@ class Brick:
         self.health = health
         self.max_health = health
         self.indestructible = indestructible
-        self.points = points
+        self.points = 0 if indestructible else points  # never breaks, so never scores (whatever the config says)
         self.active = True
         self._dict_cache: dict[str, Any] | None = None
 
@@ -66,7 +66,7 @@ class Brick:
         """Nord color palette group for current state."""
         if self.indestructible:
             return "snow_storm"
-        if self.health <= 1:
+        if self.health == 2:
             return "frost"
         return "aurora"
 
@@ -76,13 +76,13 @@ class Brick:
         if self.indestructible:
             return "metal"
         if self.health <= 1:
-            return "frost"
+            return "aurora_red"
         if self.health == 2:
-            return "aurora_green"
+            return "frost"
         if self.health == 3:
-            return "aurora_yellow"
+            return "aurora_green"
         if self.health == 4:
-            return "aurora_orange"
+            return "aurora_yellow"
         return "aurora_red"
 
     @property
@@ -91,13 +91,13 @@ class Brick:
         if self.indestructible:
             return "#D8DEE9"  # nord4 (Snow Storm)
         if self.health <= 1:
-            return "#88C0D0"  # nord8 (Frost Ice Blue - 1 hit left)
+            return "#BF616A"  # nord11 (Aurora Red - 1 hit left)
         if self.health == 2:
-            return "#A3BE8C"  # nord14 (Aurora Green - 2 hits)
+            return "#81A1C1"  # nord9 (Frost Ice Blue - 2 hits)
         if self.health == 3:
-            return "#EBCB8B"  # nord13 (Aurora Yellow - 3 hits)
+            return "#A3BE8C"  # nord14 (Aurora Green - 3 hits)
         if self.health == 4:
-            return "#D08770"  # nord12 (Aurora Orange - 4 hits)
+            return "#EBCB8B"  # nord13 (Aurora Yellow - 4 hits)
         return "#BF616A"  # nord11 (Aurora Red - 5+ hits)
 
     def hit(self) -> bool:
@@ -137,12 +137,13 @@ class Brick:
 
 
 class Arkanoid:
-    """Arkanoid simulation environment with Earth gravity and 3-region paddle physics."""
+    """Arkanoid simulation environment: constant-speed ball (no gravity) and 3-region paddle physics."""
 
     def __init__(
         self,
         config: AppConfig | None = None,
         high_score_manager: HighScoreManager | None = None,
+        seed: int | None = None,
     ) -> None:
         self.config = config or load_config()
         self.high_score_manager = (
@@ -150,8 +151,11 @@ class Arkanoid:
             if high_score_manager is not None
             else HighScoreManager(filepath=self.config.game.highscores_file)
         )
+        self.seed = seed
+        # Seed: numpy Generator (reproducible). No seed: OS entropy, so an agent cannot recover
+        # the generator state from observed angles.
+        self.rng: Any = np.random.default_rng(seed) if seed is not None else random.SystemRandom()
         self.player_name = "PLAYER"
-        self.agent_id: str | None = None
         self.score_listener: Callable[[dict[str, Any]], None] | None = None
         self._score_recorded = False
 
@@ -208,6 +212,8 @@ class Arkanoid:
         self._query_id: int = 0
         self._last_query_id: list[int] = []
 
+        for idx in range(len(self.level_sequence)):  # fail at start-up, not when a later level is reached
+            self.load_level(idx)
         self.reset_game()
 
     @property
@@ -240,6 +246,8 @@ class Arkanoid:
 
     def reset_game(self) -> None:
         """Reset the full game session back to level 1."""
+        if self.seed is not None:
+            self.rng = np.random.default_rng(self.seed)
         self.lives = self.config.game.lives
         self.score = 0
         self.elapsed_time = 0.0
@@ -267,7 +275,6 @@ class Arkanoid:
         added = self.high_score_manager.add_score(
             self.score,
             player=self.player_name,
-            agent_id=self.agent_id or "",
             time_elapsed=self.elapsed_time,
             avg_norm_score=self.avg_norm_score,
         )
@@ -279,12 +286,10 @@ class Arkanoid:
         if self.score_listener is not None:
             self.score_listener(
                 {
-                    "id": self.agent_id,
                     "name": self.player_name,
                     "score": self.score,
                     "avg_norm_score": self.avg_norm_score,
                     "levels_cleared": len(self.level_norms),
-                    "levels_played": len(self.level_sequence),
                     "setting": self.levels_label(),
                     "time_elapsed": self.elapsed_time,
                     "level": self._level_number(),
@@ -339,9 +344,9 @@ class Arkanoid:
 
         try:
             map_data = load_map_file(map_path)
-        except Exception:
-            # Fallback to default generated grid if file is unreadable
-            map_data = {"name": f"Stage {level_idx + 1}", "bricks": []}
+        except (OSError, ValueError) as e:
+            # An empty level has no brick to break, so it would never be cleared: fail instead of loading one.
+            raise ValueError(f"Cannot load level {level_idx + 1} map {map_filename!r}: {e}") from e
 
         self.current_level_name = str(map_data.get("name", f"Stage {level_idx + 1}"))
         self._init_bricks_from_data(map_data.get("bricks", []))
@@ -365,8 +370,20 @@ class Arkanoid:
             )
             points = int(b_info.get("points", type_cfg.points if type_cfg else 50))
 
-            x = float(b_info.get("x", 0.0))
-            y = float(b_info.get("y", 0.0))
+            x_val = b_info.get("x")
+            y_val = b_info.get("y")
+            if x_val is None or y_val is None:
+                row = float(b_info.get("row", 0))
+                col = float(b_info.get("col", 0))
+                margin_x = 35.0
+                margin_y = 120.0
+                gap_x = 10.0
+                gap_y = 5.0
+                x = margin_x + col * (b_width + gap_x)
+                y = margin_y + row * (b_height + gap_y)
+            else:
+                x = float(x_val)
+                y = float(y_val)
             width = float(b_info.get("width", b_width))
             height = float(b_info.get("height", b_height))
 
@@ -446,7 +463,7 @@ class Arkanoid:
         self.ball_y = self.paddle_y - self.ball_radius - 2.0
 
         # Initial launch angle between -30 and +30 degrees
-        angle = random.uniform(-math.pi / 6.0, math.pi / 6.0)
+        angle = float(self.rng.uniform(-math.pi / 6.0, math.pi / 6.0))
         self.ball_vx = self.ball_speed * math.sin(angle)
         self.ball_vy = -self.ball_speed * math.cos(angle)
 
@@ -472,6 +489,12 @@ class Arkanoid:
         else:
             self.reset_paddle_and_ball()
 
+    def _triangular(self, low: float, mode: float, high: float) -> float:
+        """Triangular draw; numpy's Generator takes (left, mode, right), `random` takes (low, high, mode)."""
+        if isinstance(self.rng, np.random.Generator):
+            return float(self.rng.triangular(low, mode, high))
+        return float(self.rng.triangular(low, high, mode))
+
     def _calculate_paddle_bounce_angle(self, relative_x: float) -> float:
         """
         Bounce angle (radians from vertical, negative = left) for the 3-region paddle:
@@ -491,7 +514,7 @@ class Arkanoid:
             centre, half = cfg.side_deg, cfg.beta_deg
         else:
             centre, half = 0.0, cfg.alpha_deg
-        return math.radians(random.triangular(centre - half, centre + half, centre))
+        return math.radians(self._triangular(centre - half, centre, centre + half))
 
     def _handle_paddle_bounce(self, hit_x: float) -> None:
         """Resolve ball bounce off the paddle using the 3-region angle distribution."""

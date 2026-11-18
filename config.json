@@ -32,7 +32,7 @@
       "blue": { "health": 2, "indestructible": false, "points": 100, "color": "#81a1c1" },
       "green": { "health": 3, "indestructible": false, "points": 150, "color": "#a3be8c" },
       "yellow": { "health": 4, "indestructible": false, "points": 200, "color": "#ebcb8b" },
-      "metal": { "health": -1, "indestructible": true, "points": 10, "color": "#d8dee9" }
+      "metal": { "health": -1, "indestructible": true, "points": 0, "color": "#d8dee9" }
     }
   },
   "game": {
@@ -40,7 +40,7 @@
     "fps": 30,
     "maps_dir": "maps",
     "highscores_file": "highscores.csv",
-    "level_time_limit": 600.0,
+    "level_time_limit": 400.0,
     "level_sequence": [
       "level1.json",
       "level2.json",

@@ -18,7 +18,15 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(cfg.screen.height, 800)
         self.assertIn("metal", cfg.bricks.types)
         self.assertTrue(cfg.bricks.types["metal"].indestructible)
+        self.assertEqual(cfg.bricks.types["metal"].points, 0)
         self.assertEqual(cfg.ball.speed, 400.0)
+
+    def test_consts_module(self) -> None:
+        import consts
+        self.assertEqual(consts.SCREEN_WIDTH, 600)
+        self.assertEqual(consts.SCREEN_HEIGHT, 800)
+        self.assertEqual(consts.BRICK_TYPES["metal"]["points"], 0)
+        self.assertTrue(consts.BRICK_TYPES["metal"]["indestructible"])
 
     def test_load_level_maps(self) -> None:
         for lvl in ["maps/level1.json", "maps/level2.json", "maps/level3.json"]:
@@ -61,6 +69,40 @@ class TestConfig(unittest.TestCase):
                     load_config(f.name)
             finally:
                 os.remove(f.name)
+
+
+    def test_load_simplified_grid_map(self) -> None:
+        import json
+        import tempfile
+        content = {
+            "name": "Grid Level",
+            "grid": {"margin_x": 35.0, "margin_y": 120.0, "gap_x": 10.0, "gap_y": 5.0},
+            "bricks": [
+                {"row": 0, "col": 0, "type": "red"},
+                {"row": 1, "col": 1, "health": 2},
+                {"row": 2, "col": 3, "health": -1},
+            ],
+        }
+        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as f:
+            json.dump(content, f)
+        try:
+            data = load_map_file(f.name)
+            self.assertEqual(len(data["bricks"]), 3)
+            # Red brick: row 0, col 0
+            self.assertEqual(data["bricks"][0]["x"], 35.0)
+            self.assertEqual(data["bricks"][0]["y"], 120.0)
+            self.assertEqual(data["bricks"][0]["health"], 1)
+            self.assertFalse(data["bricks"][0]["indestructible"])
+            # Health 2 -> blue brick
+            self.assertEqual(data["bricks"][1]["type"], "blue")
+            self.assertEqual(data["bricks"][1]["x"], 35.0 + 60.0)
+            self.assertEqual(data["bricks"][1]["y"], 120.0 + 25.0)
+            # Health -1 -> metal brick
+            self.assertEqual(data["bricks"][2]["type"], "metal")
+            self.assertTrue(data["bricks"][2]["indestructible"])
+            self.assertEqual(data["bricks"][2]["points"], 0)
+        finally:
+            os.remove(f.name)
 
 
 if __name__ == "__main__":

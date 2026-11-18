@@ -607,9 +607,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Predictive Arkanoid agent")
     parser.add_argument("--server", default="ws://localhost:8765/ws")
     parser.add_argument("--name", default="Arkanoid Agent 2")
-    parser.add_argument("--id", default=None)
     args = parser.parse_args()
-    asyncio.run(Agent2(args.server, args.name, args.id or AGENT_ID).run())
+    asyncio.run(Agent2(args.server, args.name).run())
 
 
 if __name__ == "__main__":

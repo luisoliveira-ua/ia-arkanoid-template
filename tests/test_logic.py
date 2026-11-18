@@ -1,10 +1,14 @@
 import math
+import os
 import random
+import tempfile
 import unittest
 from typing import Any
 
 import numpy as np
 
+from server.config import AppConfig, load_config
+from server.highscores import HighScoreManager
 from server.logic import Arkanoid, Brick
 
 
@@ -124,29 +128,29 @@ class TestLogic(unittest.TestCase):
         )
         self.assertEqual(b.hits_remaining, 3)
         self.assertEqual(b.palette, "aurora")
-        self.assertEqual(b.dynamic_type, "aurora_yellow")
-        self.assertEqual(b.color, "#EBCB8B")
-
-        # After 1st hit -> 2 hits left (Aurora Green)
-        b.hit()
-        self.assertEqual(b.hits_remaining, 2)
-        self.assertEqual(b.palette, "aurora")
         self.assertEqual(b.dynamic_type, "aurora_green")
         self.assertEqual(b.color, "#A3BE8C")
 
-        # After 2nd hit -> 1 hit left (Frost Ice Blue)
+        # After 1st hit -> 2 hits left (Frost Ice Blue)
         b.hit()
-        self.assertEqual(b.hits_remaining, 1)
+        self.assertEqual(b.hits_remaining, 2)
         self.assertEqual(b.palette, "frost")
         self.assertEqual(b.dynamic_type, "frost")
-        self.assertEqual(b.color, "#88C0D0")
+        self.assertEqual(b.color, "#81A1C1")
+
+        # After 2nd hit -> 1 hit left (Aurora Red)
+        b.hit()
+        self.assertEqual(b.hits_remaining, 1)
+        self.assertEqual(b.palette, "aurora")
+        self.assertEqual(b.dynamic_type, "aurora_red")
+        self.assertEqual(b.color, "#BF616A")
 
         # Verify to_dict shares this in world state
         d = b.to_dict()
         self.assertEqual(d["hits_remaining"], 1)
-        self.assertEqual(d["palette"], "frost")
-        self.assertEqual(d["type"], "frost")
-        self.assertEqual(d["color"], "#88C0D0")
+        self.assertEqual(d["palette"], "aurora")
+        self.assertEqual(d["type"], "aurora_red")
+        self.assertEqual(d["color"], "#BF616A")
 
         # Metal brick in Snow Storm
         metal = Brick(
@@ -188,8 +192,7 @@ class TestLogic(unittest.TestCase):
         cfg = self.game.config.paddle.angles
         limit = cfg.side_deg + cfg.beta_deg
         for offset in (0.0, 0.4, -0.4):
-            random.seed(7)
-            game = Arkanoid(config=self.game.config, high_score_manager=self.game.high_score_manager)
+            game = Arkanoid(config=self.game.config, high_score_manager=self.game.high_score_manager, seed=7)
             angles: list[float] = []
             original = game._handle_paddle_bounce
 
@@ -230,6 +233,16 @@ class TestLogic(unittest.TestCase):
         self.assertEqual(self.game.score, 0)
         self.game._handle_brick_hit(self.game.bricks[0], 0.0, -1.0)  # breaks
         self.assertEqual(self.game.score, 150)
+
+    def test_metal_bricks_report_no_points(self) -> None:
+        # Metal never breaks, so it never scores: the state must not advertise points for it...
+        metal = [b for b in self.game.get_state()["bricks"] if b["indestructible"]]
+        self.assertTrue(metal)
+        self.assertTrue(all(b["points"] == 0 for b in metal))
+        self.assertEqual(self.game.config.bricks.types["metal"].points, 0)
+        # also, when a map or a caller gives it points!
+        brick = Brick(0, 200.0, 100.0, 50.0, 20.0, "metal", -1, True, 10)
+        self.assertEqual(brick.to_dict()["points"], 0)
 
     def test_brick_collision_and_destruction(self) -> None:
         # Create a target destructible brick and another brick to prevent level clear
@@ -312,7 +325,8 @@ class TestLogic(unittest.TestCase):
         self.assertTrue(self.game.bricks[0].active)
         self.assertEqual(self.game.bricks[0].health, 1)
         self.assertEqual(self.game.bricks[0].hits_remaining, 1)
-        self.assertEqual(self.game.bricks[0].palette, "frost")
+        self.assertEqual(self.game.bricks[0].palette, "aurora")
+        self.assertEqual(self.game.bricks[0].dynamic_type, "aurora_red")
         # Ball should now be moving downwards (reflected)
         self.assertGreater(self.game.ball_vy, 0.0)
 
@@ -518,6 +532,86 @@ class TestLogic(unittest.TestCase):
         self.game.level_elapsed = 10_000.0
         self.game.update(0.1)
         self.assertFalse(self.game.timed_out)
+
+
+    def test_seed_determinism(self) -> None:
+        """Fixed seed yields identical ball trajectories across runs."""
+        game1 = Arkanoid(seed=42)
+        game2 = Arkanoid(seed=42)
+        self.assertEqual(game1.ball_vx, game2.ball_vx)
+        self.assertEqual(game1.ball_vy, game2.ball_vy)
+        for _ in range(10):
+            game1.update(0.05)
+            game2.update(0.05)
+            self.assertEqual(game1.ball_x, game2.ball_x)
+            self.assertEqual(game1.ball_y, game2.ball_y)
+
+    def test_unseeded_rng_is_not_module_random(self) -> None:
+        """Without a seed the game uses OS entropy, so reseeding `random` cannot predict launches."""
+        random.seed(1)
+        first = Arkanoid().ball_vx
+        random.seed(1)
+        runs = {Arkanoid().ball_vx for _ in range(5)}
+        self.assertIsInstance(Arkanoid().rng, random.SystemRandom)
+        self.assertIsInstance(Arkanoid(seed=1).rng, np.random.Generator)
+        self.assertGreater(len(runs | {first}), 1)
+
+    def test_both_generators_draw_bounce_angles_inside_the_cones(self) -> None:
+        """Seeded (numpy) and unseeded (SystemRandom) games give the same kind of angle in every paddle region."""
+        for seed in (3, None):
+            game = Arkanoid(seed=seed)
+            cfg = game.config.paddle.angles
+            w = game.paddle_width
+            regions = ((0.0, -cfg.side_deg, cfg.beta_deg), (w / 2, 0.0, cfg.alpha_deg), (w, cfg.side_deg, cfg.beta_deg))
+            for rel, centre, half in regions:
+                angles = [math.degrees(game._calculate_paddle_bounce_angle(rel)) for _ in range(400)]
+                self.assertTrue(all(centre - half <= a <= centre + half for a in angles), (seed, rel))
+                self.assertAlmostEqual(sum(angles) / len(angles), centre, delta=half / 3)
+
+    def test_grid_map_row_col_loading(self) -> None:
+        """Simplified grid maps with row/col load correctly into canvas positions."""
+        grid_brick = [{"row": 0, "col": 0, "type": "red"}, {"row": 1, "col": 2, "type": "blue"}]
+        game = Arkanoid()
+        game._init_bricks_from_data(grid_brick)
+        self.assertEqual(len(game.bricks), 2)
+        self.assertEqual(game.bricks[0].x, 35.0)
+        self.assertEqual(game.bricks[0].y, 120.0)
+        self.assertEqual(game.bricks[1].x, 35.0 + 2 * 60.0)
+        self.assertEqual(game.bricks[1].y, 120.0 + 1 * 25.0)
+
+
+class TestLevelLoading(unittest.TestCase):
+    """A map that cannot be loaded is an error naming it, never an empty level that can not be cleared."""
+
+    def _config(self, maps_dir: str, levels: list[str]) -> AppConfig:
+        cfg = load_config()
+        cfg.game.maps_dir = maps_dir
+        cfg.game.level_sequence = levels
+        return cfg
+
+    def test_missing_map_is_an_error_naming_the_map(self) -> None:
+        with tempfile.TemporaryDirectory() as maps_dir:
+            cfg = self._config(maps_dir, ["missing_level.json"])
+            with self.assertRaises(ValueError) as ctx:
+                Arkanoid(cfg, high_score_manager=HighScoreManager(None))
+        self.assertIn("missing_level.json", str(ctx.exception))
+
+    def test_invalid_map_is_an_error_naming_the_map(self) -> None:
+        for content in ('{"name": "Broken", "bricks": [{"x": 35.0, "y": 120.0,}]}', '{"name": "No bricks list"}'):
+            with self.subTest(content=content), tempfile.TemporaryDirectory() as maps_dir:
+                with open(os.path.join(maps_dir, "broken_level.json"), "w", encoding="utf-8") as f:
+                    f.write(content)
+                cfg = self._config(maps_dir, ["broken_level.json"])
+                with self.assertRaises(ValueError) as ctx:
+                    Arkanoid(cfg, high_score_manager=HighScoreManager(None))
+                self.assertIn("broken_level.json", str(ctx.exception))
+
+    def test_unloadable_later_level_fails_at_start_up(self) -> None:
+        """Every map of the sequence is checked when the game is created, not when its level is reached."""
+        cfg = self._config("maps", ["level1.json", "missing_level.json"])
+        with self.assertRaises(ValueError) as ctx:
+            Arkanoid(cfg, high_score_manager=HighScoreManager(None))
+        self.assertIn("missing_level.json", str(ctx.exception))
 
 
 if __name__ == "__main__":

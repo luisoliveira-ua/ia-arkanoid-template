@@ -5,41 +5,75 @@ import os
 from dataclasses import dataclass, field
 from typing import Any
 
+from consts import (
+    BALL_INITIAL_SPEED,
+    BALL_RADIUS,
+    BALL_SPEED,
+    BRICK_HEIGHT,
+    BRICK_TYPES,
+    BRICK_WIDTH,
+    CEILING_Y,
+    GAME_FPS,
+    GAME_HIGHSCORES_FILE,
+    GAME_LEVEL_SEQUENCE,
+    GAME_LEVEL_TIME_LIMIT,
+    GAME_LIVES,
+    GAME_MAPS_DIR,
+    GRID_GAP_X,
+    GRID_GAP_Y,
+    GRID_MARGIN_X,
+    GRID_MARGIN_Y,
+    PADDLE_ALPHA_DEG,
+    PADDLE_BETA_DEG,
+    PADDLE_CENTER_RATIO,
+    PADDLE_HEIGHT,
+    PADDLE_LEFT_RATIO,
+    PADDLE_RIGHT_RATIO,
+    PADDLE_SIDE_DEG,
+    PADDLE_SPEED,
+    PADDLE_STEP_DISTANCE,
+    PADDLE_WIDTH,
+    PADDLE_Y,
+    SCREEN_HEIGHT,
+    SCREEN_WIDTH,
+)
+
 
 @dataclass
 class ScreenConfig:
-    width: int = 600
-    height: int = 800
-    ceiling_y: float = 82.0
+    width: int = SCREEN_WIDTH
+    height: int = SCREEN_HEIGHT
+    ceiling_y: float = CEILING_Y
 
 
 @dataclass
 class PaddleAnglesConfig:
     """Bounce angles in degrees, measured from the vertical (0 = straight up)."""
 
-    alpha_deg: float = 8.0  # half-width of the center cone (around 0 = vertical, i.e. 90 deg from horizontal)
-    side_deg: float = 45.0  # nominal left/right deflection
-    beta_deg: float = 15.0  # half-width of the side cones; must be > alpha_deg
+    # half-width of the center cone (around 0 = vertical, i.e. 90 deg from horizontal)
+    alpha_deg: float = PADDLE_ALPHA_DEG
+    side_deg: float = PADDLE_SIDE_DEG  # nominal left/right deflection
+    beta_deg: float = PADDLE_BETA_DEG  # half-width of the side cones; must be > alpha_deg
 
 
 @dataclass
 class PaddleConfig:
-    width: float = 84.0
-    height: float = 14.0
-    y: float = 740.0
-    speed: float = 350.0
-    step_distance: float = 28.0
-    left_ratio: float = 0.3333
-    center_ratio: float = 0.3334
-    right_ratio: float = 0.3333
+    width: float = PADDLE_WIDTH
+    height: float = PADDLE_HEIGHT
+    y: float = PADDLE_Y
+    speed: float = PADDLE_SPEED
+    step_distance: float = PADDLE_STEP_DISTANCE
+    left_ratio: float = PADDLE_LEFT_RATIO
+    center_ratio: float = PADDLE_CENTER_RATIO
+    right_ratio: float = PADDLE_RIGHT_RATIO
     angles: PaddleAnglesConfig = field(default_factory=PaddleAnglesConfig)
 
 
 @dataclass
 class BallConfig:
-    radius: float = 6.0
-    speed: float = 400.0
-    initial_speed: float = 400.0
+    radius: float = BALL_RADIUS
+    speed: float = BALL_SPEED
+    initial_speed: float = BALL_INITIAL_SPEED
 
 
 @dataclass
@@ -50,23 +84,36 @@ class BrickTypeConfig:
     color: str = "#ffffff"
 
 
+def _default_brick_types() -> dict[str, BrickTypeConfig]:
+    return {
+        name: BrickTypeConfig(
+            health=int(info["health"]),
+            indestructible=bool(info["indestructible"]),
+            points=int(info["points"]),
+            color=str(info["color"]),
+        )
+        for name, info in BRICK_TYPES.items()
+    }
+
+
 @dataclass
 class BricksConfig:
-    width: float = 50.0
-    height: float = 20.0
-    types: dict[str, BrickTypeConfig] = field(default_factory=dict)
+    width: float = BRICK_WIDTH
+    height: float = BRICK_HEIGHT
+    types: dict[str, BrickTypeConfig] = field(default_factory=_default_brick_types)
 
 
 @dataclass
 class GameRulesConfig:
-    lives: int = 3
-    fps: int = 30
-    maps_dir: str = "maps"
-    highscores_file: str = "highscores.csv"
+    lives: int = GAME_LIVES
+    fps: int = GAME_FPS
+    maps_dir: str = GAME_MAPS_DIR
+    highscores_file: str = GAME_HIGHSCORES_FILE
     level_sequence: list[str] = field(
-        default_factory=lambda: ["level1.json", "level2.json", "level3.json"]
+        default_factory=lambda: list(GAME_LEVEL_SEQUENCE)
     )
-    level_time_limit: float = 600.0  # seconds of game time per level, 0 disables; game over when exceeded
+    # seconds of game time per level, 0 disables; game over when exceeded
+    level_time_limit: float = GAME_LEVEL_TIME_LIMIT
 
 
 @dataclass
@@ -147,20 +194,69 @@ def load_config(config_path: str = "config.json") -> AppConfig:
         level_sequence=list(
             g_data.get("level_sequence", ["level1.json", "level2.json", "level3.json"])
         ),
-        level_time_limit=float(g_data.get("level_time_limit", 600.0)),
+        level_time_limit=float(g_data.get("level_time_limit", GAME_LEVEL_TIME_LIMIT)),
     )
 
     return AppConfig(screen=screen, paddle=paddle, ball=ball, bricks=bricks, game=game)
 
 
 def load_map_file(map_path: str) -> dict[str, Any]:
-    """Read and validate a map JSON file."""
+    """Read and validate a map JSON file, normalizing grid and brick formats."""
     if not os.path.exists(map_path):
         raise FileNotFoundError(f"Map file not found: {map_path}")
     with open(map_path, encoding="utf-8") as f:
         data: dict[str, Any] = json.load(f)
     if "bricks" not in data or not isinstance(data["bricks"], list):
         raise ValueError(f"Invalid map format in {map_path}: missing 'bricks' list")
+
+    grid = data.get("grid", {})
+    margin_x = float(grid.get("margin_x", GRID_MARGIN_X))
+    margin_y = float(grid.get("margin_y", GRID_MARGIN_Y))
+    gap_x = float(grid.get("gap_x", GRID_GAP_X))
+    gap_y = float(grid.get("gap_y", GRID_GAP_Y))
+    b_w = float(data.get("brick_width", BRICK_WIDTH))
+    b_h = float(data.get("brick_height", BRICK_HEIGHT))
+
+    for b in data["bricks"]:
+        if "row" in b and "col" in b and "x" not in b and "y" not in b:
+            b["x"] = margin_x + float(b["col"]) * (b_w + gap_x)
+            b["y"] = margin_y + float(b["row"]) * (b_h + gap_y)
+
+        b_type = b.get("type")
+        health = b.get("health")
+        if b_type is not None and b_type in BRICK_TYPES:
+            cfg_type = BRICK_TYPES[b_type]
+            if health is None:
+                b["health"] = cfg_type["health"]
+            if "indestructible" not in b:
+                b["indestructible"] = cfg_type["indestructible"]
+            if "points" not in b:
+                b["points"] = cfg_type["points"]
+        elif health is not None:
+            if health == -1:
+                b.setdefault("type", "metal")
+                b.setdefault("indestructible", True)
+                b.setdefault("points", 0)
+            elif health == 1:
+                b.setdefault("type", "red")
+                b.setdefault("indestructible", False)
+                b.setdefault("points", 50)
+            elif health == 2:
+                b.setdefault("type", "blue")
+                b.setdefault("indestructible", False)
+                b.setdefault("points", 100)
+            elif health == 3:
+                b.setdefault("type", "green")
+                b.setdefault("indestructible", False)
+                b.setdefault("points", 150)
+            elif health >= 4:
+                b.setdefault("type", "yellow")
+                b.setdefault("indestructible", False)
+                b.setdefault("points", 200)
+
+        if b.get("indestructible", False):
+            b["points"] = 0
+
     return data
 
 

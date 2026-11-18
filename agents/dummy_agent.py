@@ -6,8 +6,6 @@ from typing import Any
 
 from agents.base_agent import BaseAgent
 
-AGENT_ID: str | None = None  # your id (e.g. "a12345"); --id overrides it; None = random
-
 
 class DummyAgent(BaseAgent):
     """Agent that follows the ball horizontally, or idles when the state has no positions."""
@@ -44,11 +42,10 @@ class DummyAgent(BaseAgent):
 def main() -> None:
     """Run Dummy Agent against a game server."""
     parser = argparse.ArgumentParser(description="Arkanoid dummy agent")
-    parser.add_argument("--server", default="ws://localhost:8765/ws", help="WebSocket URI")
-    parser.add_argument("--name", default="Dummy Agent", help="Agent name shown in the high score table")
-    parser.add_argument("--id", default=None, help="Agent id, used to rank it (default: AGENT_ID, else random)")
+    parser.add_argument("-s", "--server", default="ws://localhost:8765/ws", help="WebSocket URI")
+    parser.add_argument("-n", "--name", default="Dummy Agent", help="Agent name shown in the high score table")
     args = parser.parse_args()
-    asyncio.run(DummyAgent(args.server, args.name, args.id or AGENT_ID).run())
+    asyncio.run(DummyAgent(args.server, args.name).run())
 
 
 if __name__ == "__main__":

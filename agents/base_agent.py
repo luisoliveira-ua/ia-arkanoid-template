@@ -3,19 +3,13 @@
 import asyncio
 import json
 import logging
-import time
-import uuid
 from typing import Any
+
+import websockets
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - AGENT - %(levelname)s - %(message)s"
 )
-
-
-def resolve_agent_id(agent_id: str | None = None) -> str:
-    """Return the trimmed agent id, or a random one (uuid4 hex) when it is None or empty."""
-    agent_id = (agent_id or "").strip()
-    return agent_id or uuid.uuid4().hex
 
 
 class BaseAgent:
@@ -25,14 +19,12 @@ class BaseAgent:
         self,
         server_uri: str = "ws://localhost:8765/ws",
         name: str = "Agent",
-        agent_id: str | None = None,
     ) -> None:
         name = name.strip()
         if not name:
             raise ValueError("Agent name must not be empty")
         self.server_uri = server_uri
         self.name = name
-        self.agent_id = resolve_agent_id(agent_id)
         self.current_state: dict[str, Any] | None = None
         self.player_id: int | None = None
         self.setup_data: dict[str, Any] | None = None
@@ -40,21 +32,18 @@ class BaseAgent:
 
     async def run(self) -> None:
         """Connect to game server and run the observation-action loop."""
-        import websockets
-
         try:
             async with websockets.connect(self.server_uri) as websocket:
-                await websocket.send(json.dumps({"client": "agent", "name": self.name, "id": self.agent_id}))
-                logging.info("Connected to %s as %s (id %s)", self.server_uri, self.name, self.agent_id)
+                await websocket.send(json.dumps({"client": "agent", "name": self.name}))
+                logging.info("Connected to %s as %s", self.server_uri, self.name)
 
-                states: asyncio.Queue[dict[str, Any] | None] = asyncio.Queue(maxsize=2)
+                # Read the socket in its own task and keep only the newest state, so a slow deliberate()
+                # acts on the current game instead of working through a backlog of obsolete states.
+                latest: dict[str, Any] | None = None
+                wakeup = asyncio.Event()
 
-                def publish_latest(state: dict[str, Any] | None) -> None:
-                    if states.full():
-                        states.get_nowait()
-                    states.put_nowait(state)
-
-                async def receive_updates() -> None:
+                async def receive() -> None:
+                    nonlocal latest
                     try:
                         async for message in websocket:
                             data = json.loads(message)
@@ -64,38 +53,24 @@ class BaseAgent:
                                 self.setup_data = data
                                 logging.info("Assigned player ID: %s", self.player_id)
                             elif msg_type in ("state", "update"):
-                                publish_latest(data)
-                                await asyncio.sleep(0)
-                    except Exception as e:
-                        self.stop_reason = f"connection error: {e}"
-                        logging.error("Connection error: %s", e)
+                                latest = data
+                                wakeup.set()
+                                if data.get("game_won") or data.get("game_over"):
+                                    break  # keep the terminal state as the last one
                     finally:
-                        publish_latest(None)
+                        wakeup.set()
 
-                receiver = asyncio.create_task(receive_updates())
+                receiver = asyncio.create_task(receive())
                 try:
                     while True:
-                        data = await states.get()
-                        # States that piled up while deliberate() ran are stale (the server does not wait):
-                        # let the receiver read what is already buffered and keep only the newest one.
-                        # The end of the game is never skipped, and the catch-up is capped at 2 ms because a fast
-                        # server always has a newer state on the way.
-                        idle, closing = 0, False
-                        catch_up_end = time.perf_counter() + 0.002
-                        while (data is not None and idle < 2 and time.perf_counter() < catch_up_end
-                               and not (data.get("game_won") or data.get("game_over"))):
-                            await asyncio.sleep(0)
-                            if states.empty():
-                                idle += 1
-                                continue
-                            newer, idle = states.get_nowait(), 0
-                            if newer is None:  # connection closed: still answer the last state
-                                closing = True
+                        if latest is None:
+                            if receiver.done():
+                                receiver.result()  # connection closed (or failed): re-raise any receive error
                                 break
-                            data = newer
-                        if data is None:
-                            break
-
+                            wakeup.clear()
+                            await wakeup.wait()
+                            continue
+                        data, latest = latest, None
                         self.current_state = data
                         if data.get("game_won"):
                             logging.info("Game won! Victory achieved. Stopping agent.")
@@ -109,14 +84,8 @@ class BaseAgent:
                         action = await self.deliberate()
                         if action is not None:
                             await websocket.send(json.dumps(action))
-                        if closing:
-                            break
                 finally:
                     receiver.cancel()
-                    try:
-                        await receiver
-                    except asyncio.CancelledError:
-                        pass
 
         except Exception as e:
             logging.error("Connection error: %s", e)
@@ -132,7 +101,7 @@ class BaseAgent:
         if isinstance(stage, int) and isinstance(stages, int):
             stage = min(stage, stages)  # after the last level is cleared the server counts one past it
         rows = [
-            ("Agent", f"{self.name} (id {self.agent_id})"),
+            ("Agent", self.name),
             ("Stop reason", self.stop_reason),
             ("Level", f"{stage} of {stages}: {s.get('stage_name', s.get('level_name', '?'))}"),
             ("Score", str(s.get("score", 0))),

@@ -19,7 +19,7 @@ def _game(level: int, seed: int) -> Arkanoid:
 
 
 def _small_agent(**overrides: object) -> ExpectimaxAgent:
-    agent = ExpectimaxAgent("ws://localhost:1/ws", "Test", "test", unlimited_budget=True)
+    agent = ExpectimaxAgent("ws://localhost:1/ws", "Test", unlimited_budget=True)
     agent.ROOT_SAMPLES = 8
     agent.GRID_BINS = 12
     agent.GRID_SAMPLES = 3

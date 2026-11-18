@@ -321,16 +321,17 @@ def main() -> None:
     """CLI entry point for launching Arkanoid Pygame Viewer."""
     parser = argparse.ArgumentParser(description="Arkanoid Pygame Viewer")
     parser.add_argument(
+        "-s",
         "--server",
         type=str,
         default="ws://localhost:8765/ws",
         help="WebSocket server URI",
     )
     parser.add_argument(
-        "--width", type=int, default=600, help="Initial window width"
+        "-w", "--width", type=int, default=600, help="Initial window width"
     )
     parser.add_argument(
-        "--height", type=int, default=800, help="Initial window height"
+        "-H", "--height", type=int, default=800, help="Initial window height"
     )
     args = parser.parse_args()
 

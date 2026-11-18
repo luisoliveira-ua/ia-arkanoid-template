@@ -59,7 +59,7 @@ def play(job: tuple[int, int]) -> dict[str, Any]:
     level, seed = job
     rng = random.Random(seed)
     geo, health = level_setup(level)
-    agent = ExpectimaxAgent("ws://localhost:1/ws", "Train", "train", unlimited_budget=True)
+    agent = ExpectimaxAgent("ws://localhost:1/ws", "Train", unlimited_budget=True)
     start_hits = sum(h for h in health if h > 0)
     a = math.radians(rng.uniform(-30.0, 30.0))
     t, _, cleared, contact_x, health = fly(geo, health, geo.width / 2.0, geo.paddle_y - geo.radius - 2.0,

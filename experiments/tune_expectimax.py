@@ -50,7 +50,7 @@ def play(level: int, seed: int, params: dict[str, float], budgeted: bool = False
     config.game.level_sequence = [f"level{level}.json"]
     config.game.level_time_limit = 0.0
     game = Arkanoid(config, HighScoreManager(None))
-    agent = ExpectimaxAgent("ws://localhost:1/ws", "Tune", "tune", unlimited_budget=not budgeted)
+    agent = ExpectimaxAgent("ws://localhost:1/ws", "Tune", unlimited_budget=not budgeted)
     for name, value in params.items():
         setattr(agent, name, value)
     dt = 1.0 / config.game.fps

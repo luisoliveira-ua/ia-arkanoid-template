@@ -141,9 +141,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Arkanoid search agent")
     parser.add_argument("--server", default="ws://localhost:8765/ws")
     parser.add_argument("--name", default="Arkanoid Search Agent")
-    parser.add_argument("--id", default=None)
     args = parser.parse_args()
-    asyncio.run(SearchAgent(args.server, args.name, args.id or AGENT_ID).run())
+    asyncio.run(SearchAgent(args.server, args.name).run())
 
 
 if __name__ == "__main__":

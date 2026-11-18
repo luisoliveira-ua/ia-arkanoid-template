@@ -31,11 +31,11 @@ class TestHighScores(unittest.TestCase):
         self.assertEqual(len(manager.scores), 10)
         self.assertEqual(manager.get_highest_score(), DEFAULT_SCORES[0].score)
 
-        manager.add_score(500, player="LOW", agent_id="a1", time_elapsed=10.0)  # not top 10, still logged
-        manager.add_score(15000, player="ann, \"the\" bot", agent_id="a2", time_elapsed=100.0, avg_norm_score=150.0)
+        manager.add_score(500, player="LOW", time_elapsed=10.0)  # not top 10, still logged
+        manager.add_score(15000, player="ann, \"the\" bot", time_elapsed=100.0, avg_norm_score=150.0)
         with open(self.test_file, newline="", encoding="utf-8") as f:
             rows = list(csv.DictReader(f))
-        self.assertEqual([r["id"] for r in rows], ["a1", "a2"])
+        self.assertEqual([r["player"] for r in rows], ["LOW", 'ann, "the" bot'])
         self.assertEqual(rows[1]["player"], 'ann, "the" bot')
         self.assertEqual(rows[1]["score"], "15000")
         self.assertEqual(rows[1]["avg_norm_score"], "150.0")
@@ -75,7 +75,6 @@ class TestHighScores(unittest.TestCase):
         manager = HighScoreManager(filepath=self.test_file)
         self.assertEqual(len(manager.scores), 10)
         self.assertEqual(manager.scores[0].player, "GOOD")
-        self.assertEqual(manager.scores[0].agent_id, "a1")
         self.assertNotIn("BAD", [e.player for e in manager.scores])
 
     def test_binary_garbage_file_ignored(self) -> None:

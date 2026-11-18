@@ -10,7 +10,7 @@ import asyncio
 
 from agents.expectimax_agent import ExpectimaxAgent
 
-AGENT_ID: str | None = None  # Student number of a group member (e.g. "a12345"); --id overrides it.
+AGENT_NAME = "Student Arkanoid Agent"  # fixed name of the group: the dashboard identifies and ranks the agent by it
 
 
 class StudentAgent(ExpectimaxAgent):
@@ -19,11 +19,10 @@ class StudentAgent(ExpectimaxAgent):
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Arkanoid expectimax agent")
-    parser.add_argument("--server", default="ws://localhost:8765/ws")
-    parser.add_argument("--name", default="Student Arkanoid Agent")
-    parser.add_argument("--id", default=None)
+    parser.add_argument("-s", "--server", default="ws://localhost:8765/ws", help="WebSocket URI")
+    parser.add_argument("-n", "--name", default=AGENT_NAME, help="Agent name shown in the dashboard")
     args = parser.parse_args()
-    asyncio.run(StudentAgent(args.server, args.name, args.id or AGENT_ID).run())
+    asyncio.run(StudentAgent(args.server, args.name).run())
 
 
 if __name__ == "__main__":

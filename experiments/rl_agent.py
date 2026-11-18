@@ -347,7 +347,6 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Arkanoid online Q-learning agent")
     parser.add_argument("--server", default="ws://localhost:8765/ws")
     parser.add_argument("--name", default="Arkanoid RL Agent")
-    parser.add_argument("--id", default=None)
     parser.add_argument(
         "--epsilon", type=float, default=ReinforcementAgent.DEFAULT_EPSILON
     )
@@ -357,7 +356,6 @@ def main() -> None:
         ReinforcementAgent(
             args.server,
             args.name,
-            args.id,
             epsilon=args.epsilon,
             q_path=args.q_table,
         ).run()

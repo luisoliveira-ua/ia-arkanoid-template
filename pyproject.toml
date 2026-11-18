@@ -71,7 +71,7 @@ ignore_names = [
 ]
 
 [tool.coverage.run]
-source = ["server", "agents"]
+source = ["server", "agents", "tools", "viewer"]
 omit = [
     "tests/*",
     "agents/manual_agent.py",

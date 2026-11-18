@@ -11,7 +11,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime
 from typing import Any
 
-_FIELDS = ["date", "id", "player", "score", "time_elapsed", "avg_norm_score"]
+_FIELDS = ["date", "player", "score", "time_elapsed", "avg_norm_score"]
 
 
 @dataclass
@@ -20,7 +20,6 @@ class HighScoreEntry:
 
     score: int
     player: str = "PLAYER"
-    agent_id: str = ""
     date: str = ""
     time_elapsed: float = 0.0
     avg_norm_score: float = 0.0
@@ -72,7 +71,6 @@ class HighScoreManager:
                         HighScoreEntry(
                             score=int(row["score"]),
                             player=row.get("player") or "PLAYER",
-                            agent_id=row.get("id") or "",
                             date=row.get("date") or "",
                             time_elapsed=float(row.get("time_elapsed") or 0.0),
                             avg_norm_score=float(row.get("avg_norm_score") or row.get("normalized_score") or 0.0),
@@ -105,13 +103,22 @@ class HighScoreManager:
         if self.filepath is None:
             return
         new_file = not os.path.exists(self.filepath) or os.path.getsize(self.filepath) == 0
+        fields = _FIELDS
+        if not new_file:  # a log written by an older version keeps its own columns (an `id` column stays empty)
+            with open(self.filepath, newline="", encoding="utf-8") as f:
+                fields = next(csv.reader(f), _FIELDS)
         with open(self.filepath, "a", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
             if new_file:
                 writer.writerow(_FIELDS)
-            writer.writerow(
-                [entry.date, entry.agent_id, entry.player, entry.score, entry.time_elapsed, entry.avg_norm_score]
-            )
+            values = {
+                "date": entry.date,
+                "player": entry.player,
+                "score": entry.score,
+                "time_elapsed": entry.time_elapsed,
+                "avg_norm_score": entry.avg_norm_score,
+            }
+            writer.writerow([values.get(k, "") for k in fields])
 
     def get_highest_score(self) -> int:
         """Return the all-time highest raw score."""
@@ -129,7 +136,6 @@ class HighScoreManager:
         self,
         score: int,
         player: str = "PLAYER",
-        agent_id: str = "",
         date: str | None = None,
         time_elapsed: float = 0.0,
         avg_norm_score: float | None = None,
@@ -150,7 +156,6 @@ class HighScoreManager:
         new_entry = HighScoreEntry(
             score=score,
             player=player,
-            agent_id=agent_id,
             date=date,
             time_elapsed=time_elapsed,
             avg_norm_score=avg_norm_score,

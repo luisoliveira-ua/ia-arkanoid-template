@@ -10,10 +10,6 @@ from typing import Any
 
 import websockets
 
-from agents.base_agent import resolve_agent_id
-
-AGENT_ID: str | None = None  # your id (e.g. "a12345"); --id overrides it; None = random
-
 try:
     import termios
     import tty
@@ -23,6 +19,12 @@ except ImportError:
     termios = None  # type: ignore[assignment]
     tty = None  # type: ignore[assignment]
     HAS_TERMIOS = False
+
+
+def _safe_print(text: str) -> None:
+    """Print text, replacing characters the output encoding cannot represent (e.g. emoji on a cp1252 pipe)."""
+    encoding = getattr(sys.stdout, "encoding", None) or "utf-8"
+    print(text.encode(encoding, errors="replace").decode(encoding))
 
 
 async def receive_loop(
@@ -54,13 +56,22 @@ async def receive_loop(
                 game_won = data.get("game_won", False)
                 bricks = data.get("bricks", [])
 
+                level_limit = float(data.get("level_time_limit", 0.0))
+                level_elapsed = float(data.get("level_time_elapsed", 0.0))
+                if level_limit > 0.0:
+                    time_info = (
+                        f"TIME LEFT: {max(0.0, level_limit - level_elapsed):05.1f}s"
+                    )
+                else:
+                    time_info = f"TIME: {timer:05.1f}s"
+
                 # Clean screen redraw
                 sys.stdout.write("\033[H\033[2J")
                 sys.stdout.flush()
 
                 print("=" * 20 + " ARKANOID HUD " + "=" * 20)
                 print(
-                    f"STAGE: {stage}/{max_stages} | TIME: {timer:05.1f}s | LIVES: {lives}"
+                    f"STAGE: {stage}/{max_stages} | {time_info} | LIVES: {lives}"
                 )
                 print(
                     f"SCORE: {score:<5} ({norm_score:.1f}/s) | HIGH: {high_score:<5} ({high_score_norm:.1f}/s)"
@@ -72,13 +83,13 @@ async def receive_loop(
                 print(f"Active Bricks: {len(bricks)}")
 
                 if game_won:
-                    print("=" * 16 + " 🏆 YOU WON! ALL STAGES CLEARED! 🏆 " + "=" * 16)
+                    _safe_print("=" * 16 + " 🏆 YOU WON! ALL STAGES CLEARED! 🏆 " + "=" * 16)
                     print("\nGame session completed. Stopping agent process.")
                     if stop_event is not None:
                         stop_event.set()
                     break
                 if game_over:
-                    print("=" * 20 + " 💥 GAME OVER! 💥 " + "=" * 20)
+                    _safe_print("=" * 20 + " 💥 GAME OVER! 💥 " + "=" * 20)
                     print("\nGame session completed. Stopping agent process.")
                     if stop_event is not None:
                         stop_event.set()
@@ -87,7 +98,7 @@ async def receive_loop(
                 print("=" * 54)
                 print("\n[CONTROLS] A / Left: West | D / Right: East | Q: Quit")
 
-    except websockets.exceptions.ConnectionClosed:
+    except websockets.ConnectionClosed:
         print("\nDisconnected from Arkanoid Server.")
     finally:
         if stop_event is not None:
@@ -159,14 +170,13 @@ async def send_loop(
 async def run_manual_agent(
     url: str = "ws://localhost:8765/ws",
     name: str = "Manual Arkanoid Driver",
-    agent_id: str | None = None,
 ) -> None:
     """Connect to WebSocket server and launch send/receive tasks."""
     print(f"Connecting to Arkanoid Server on {url}...")
     try:
         async with websockets.connect(url) as websocket:
             await websocket.send(
-                json.dumps({"client": "agent", "name": name, "id": resolve_agent_id(agent_id)})
+                json.dumps({"client": "agent", "name": name})
             )
             stop_event = asyncio.Event()
             rec_task = asyncio.create_task(receive_loop(websocket, stop_event))
@@ -188,14 +198,15 @@ async def run_manual_agent(
 def main() -> None:
     """CLI entry point for manual agent."""
     parser = argparse.ArgumentParser(description="Arkanoid manual agent")
-    parser.add_argument("--server", default="ws://localhost:8765/ws", help="WebSocket URI")
-    parser.add_argument("--name", default="Manual Arkanoid Driver", help="Player name shown in the high score table")
-    parser.add_argument("--id", default=None, help="Agent id, used to rank it (default: AGENT_ID, else random)")
+    parser.add_argument("-s", "--server", default="ws://localhost:8765/ws", help="WebSocket URI")
+    parser.add_argument(
+        "-n", "--name", default="Manual Arkanoid Driver", help="Player name shown in the high score table"
+    )
     args = parser.parse_args()
     if not args.name.strip():
         parser.error("--name must not be empty")
     try:
-        asyncio.run(run_manual_agent(args.server, args.name.strip(), args.id or AGENT_ID))
+        asyncio.run(run_manual_agent(args.server, args.name.strip()))
     except KeyboardInterrupt:
         print("\nManual agent stopped.")
 

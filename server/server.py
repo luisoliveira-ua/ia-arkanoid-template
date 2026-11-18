@@ -2,20 +2,18 @@
 
 import argparse
 import logging
-import re
-import uuid
 from typing import Any
 
 import aigf.interface as interface
 from aigf.main import run_app
 
+from consts import GAME_LEVEL_TIME_LIMIT
 from server.config import AppConfig, load_config, parse_levels
 from server.highscores import HighScoreManager
 from server.logic import Arkanoid
 from server.remote import HIGHSCORE_URL, RemoteScoreSubmitter
 
 _MAX_NAME_LEN = 32
-_MAX_ID_LEN = 64
 _MAX_SUBSTEP = 0.05  # seconds of simulated time per physics call
 
 logging.basicConfig(
@@ -29,12 +27,6 @@ def sanitize_name(raw: object) -> str:
     return text[:_MAX_NAME_LEN].strip() or "PLAYER"
 
 
-def sanitize_id(raw: object) -> str:
-    """Clean an agent-supplied id: [A-Za-z0-9._-] only, max 64 chars, else a random uuid4 hex."""
-    text = re.sub(r"[^A-Za-z0-9._-]", "", str(raw or ""))[:_MAX_ID_LEN]
-    return text or uuid.uuid4().hex
-
-
 class ArkanoidGameServer(interface.GameInterface):
     """Arkanoid game server implementation using the AI Game Framework."""
 
@@ -46,6 +38,7 @@ class ArkanoidGameServer(interface.GameInterface):
         levels: list[str] | None = None,
         share_highscore: bool = False,
         level_time_limit: float | None = None,
+        seed: int | None = None,
     ) -> None:
         if acceleration <= 0.0:
             raise ValueError("acceleration must be > 0")
@@ -60,6 +53,7 @@ class ArkanoidGameServer(interface.GameInterface):
             self.app_config.game.level_time_limit = level_time_limit
         self.acceleration = acceleration
         self.sim_dt = 1.0 / self.app_config.game.fps
+        self.seed = seed
         # The framework loop sleeps 1/fps between ticks: raising its rate shortens wall-clock time,
         # while every tick still advances the simulation by exactly sim_dt (same dynamics for agents).
         super().__init__(
@@ -68,7 +62,7 @@ class ArkanoidGameServer(interface.GameInterface):
             maps_dir=self.app_config.game.maps_dir,
         )
         scores = HighScoreManager(self.app_config.game.highscores_file if share_highscore else None)
-        self.game = Arkanoid(self.app_config, high_score_manager=scores)
+        self.game = Arkanoid(self.app_config, high_score_manager=scores, seed=seed)
         self.remote: RemoteScoreSubmitter | None = None
         if share_highscore:
             self.remote = RemoteScoreSubmitter(HIGHSCORE_URL)
@@ -94,7 +88,6 @@ class ArkanoidGameServer(interface.GameInterface):
         name = data.get("name")
         if name and isinstance(name, str):
             self.game.player_name = sanitize_name(name)
-        self.game.agent_id = sanitize_id(data.get("id"))
 
     async def on_player_disconnect(self, player_id: int) -> None:
         """Handle agent disconnection."""
@@ -102,7 +95,6 @@ class ArkanoidGameServer(interface.GameInterface):
         if self.player_id == player_id:
             self.player_id = None
             self.game.player_name = "PLAYER"
-            self.game.agent_id = None
             self.state = interface.GameState.LOBBY
             self.game.reset_game()
             logging.info("Server reset to LOBBY awaiting a new agent.")
@@ -173,34 +165,45 @@ class ArkanoidGameServer(interface.GameInterface):
 def build_parser() -> argparse.ArgumentParser:
     """Create the command line parser for the game server."""
     parser = argparse.ArgumentParser(description="Arkanoid AI Game Server")
-    parser.add_argument("--host", type=str, default="0.0.0.0", help="Host address")
-    parser.add_argument("--port", type=int, default=8765, help="Port to run on")
-    parser.add_argument("--config", type=str, default="config.json", help="Path to config.json")
-    parser.add_argument("--fps", type=int, default=30, help="Simulation ticks per simulated second (default: 30)")
+    parser.add_argument("-H", "--host", type=str, default="0.0.0.0", help="Host address")
+    parser.add_argument("-p", "--port", type=int, default=8765, help="Port to run on")
+    parser.add_argument("-c", "--config", type=str, default="config.json", help="Path to config.json")
+    parser.add_argument("-f", "--fps", type=int, default=30, help="Simulation ticks per simulated second (default: 30)")
     parser.add_argument(
+        "-a",
         "--acceleration",
         type=float,
         default=1.0,
         help="Wall-clock speed-up factor, e.g. 10 runs 10x faster for training (default: 1.0)",
     )
     parser.add_argument(
+        "-l",
         "--levels",
         type=str,
         default=None,
         help="Levels to play: N, N,M,... or A-B (e.g. 1 | 1,2,3 | 1-3 | 1,3-5). Default: all in config.json",
     )
     parser.add_argument(
+        "-t",
         "--level-time-limit",
         type=float,
         default=None,
         help="Seconds of game time allowed per level, 0 disables; game over if a level is not cleared in time "
-        "(default: game.level_time_limit in config.json, 600)",
+        f"(default: game.level_time_limit in config.json, {int(GAME_LEVEL_TIME_LIMIT)})",
     )
     parser.add_argument(
+        "-s",
+        "--seed",
+        type=int,
+        default=None,
+        help="PRNG seed for reproducible ball refractions and trajectories",
+    )
+    parser.add_argument(
+        "-S",
         "--share-highscore",
         action=argparse.BooleanOptionalAction,
         default=False,
-        help="Persist scores to the local CSV file (highscores.csv) and upload the normalized score (default: off)",
+        help="Persist scores to the local CSV file (highscores.csv) and upload the avg_norm_score (default: off)",
     )
     return parser
 
@@ -226,13 +229,15 @@ def main() -> None:
         levels=levels,
         share_highscore=args.share_highscore,
         level_time_limit=args.level_time_limit,
+        seed=args.seed,
     )
     logging.info(
-        "fps=%d acceleration=%.2fx levels=%s level_time_limit=%.0fs share_highscore=%s",
+        "fps=%d acceleration=%.2fx levels=%s level_time_limit=%.0fs seed=%s share_highscore=%s",
         args.fps,
         args.acceleration,
         cfg.game.level_sequence,
         cfg.game.level_time_limit,
+        args.seed,
         args.share_highscore,
     )
     run_app(server, host=args.host, port=args.port)
