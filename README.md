@@ -52,6 +52,12 @@ Arkanoid variant with JSON maps for training and evaluating AI agents, built on 
 - Group assignment (guide): [English](assets/trab-grupo-arkanoid-en.pdf), [Portuguese](assets/trab-grupo-arkanoid-pt.pdf).
 - Session slides (setup, metric, how to start): [presentation](assets/trab-grupo-arkanoid-slides.pdf).
 
+## Group members
+
+- `<Luis Oliveira>` — `<125016>`
+- `<Margarida Teixeira>` — `<126011>`
+- `<Tomás Cardoso>` — `<125050>`
+
 ## Quick Start
 
 Run everything from the repository root (config, maps and assets use relative paths). Python 3.12 is the reference version (3.10 is the minimum supported). An agent running in inference mode can only rely on the libraries in `pyproject.toml`.
