@@ -16,10 +16,12 @@ from pathlib import Path
 
 import numpy as np
 
-from train_value import LEVELS, level_setup
+from experiments.train_value import LEVELS, level_setup
 
-DATA_DIR = Path("training_data/expectimax_games")
-DEFAULT_OUT = Path("training_data/tail_weights.json")
+DATA_DIR = Path(__file__).resolve().parent / "training_data"  # this folder's data
+
+GAMES_DIR = DATA_DIR / "expectimax_games"
+DEFAULT_OUT = DATA_DIR / "tail_weights.json"
 
 
 def late_rates(level: int, late_hits: int) -> list[dict[str, float]]:
@@ -27,7 +29,7 @@ def late_rates(level: int, late_hits: int) -> list[dict[str, float]]:
     geo, health = level_setup(level)
     standing = np.zeros(len(health))
     games = 0
-    for path in sorted(DATA_DIR.glob(f"{level}_*.npz")):
+    for path in sorted(GAMES_DIR.glob(f"{level}_*.npz")):
         with np.load(path) as d:
             boards = d["boards"].astype(np.int64)
         left = np.maximum(boards, 0).sum(axis=1)

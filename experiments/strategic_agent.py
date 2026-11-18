@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any
 
 from agents.base_agent import BaseAgent
-from arkanoid_domain import ArkanoidSearchDomain, ArkanoidState, search_decision
+from experiments.arkanoid_domain import ArkanoidSearchDomain, ArkanoidState, search_decision
 
 
 class StrategicAgent(BaseAgent):
@@ -61,7 +61,7 @@ class StrategicAgent(BaseAgent):
     def _load_learned_profile() -> dict[str, Any]:
         """Load the trained contextual policy and action values."""
         profile_path = (
-            Path(__file__).resolve().parents[1]
+            Path(__file__).resolve().parent
             / "training_data"
             / "learned_policy.json"
         )

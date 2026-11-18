@@ -29,10 +29,12 @@ from typing import Any
 import numpy as np
 
 from agents.fast_physics import Geometry, feasible_zones, fly, launch, triangular_quantile
-from agents.value_model import DEFAULT_MODEL_PATH, TARGET_SCALE, LevelNet, ValueModel, layout_of
+from experiments.value_model import DEFAULT_MODEL_PATH, TARGET_SCALE, LevelNet, ValueModel, layout_of
 from server.config import load_config
 from server.highscores import HighScoreManager
 from server.logic import Arkanoid
+
+DATA_DIR = Path(__file__).resolve().parent / "training_data"  # this folder's data
 
 LEVELS = (1, 2, 3)
 TIME_LIMIT = 600.0
@@ -207,7 +209,7 @@ def main() -> None:
     parser.add_argument("--workers", type=int, default=11)
     parser.add_argument("--resume", action="store_true", help="start from the saved model")
     parser.add_argument("--out", type=Path, default=DEFAULT_MODEL_PATH)
-    parser.add_argument("--log", type=Path, default=Path("training_data/value_training.json"))
+    parser.add_argument("--log", type=Path, default=DATA_DIR / "value_training.json")
     args = parser.parse_args()
 
     setups = {level: level_setup(level) for level in LEVELS}

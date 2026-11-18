@@ -17,7 +17,9 @@ import numpy as np
 
 from agents.fast_physics import Geometry
 
-DEFAULT_MODEL_PATH = Path(__file__).resolve().parents[1] / "training_data" / "value_model.npz"
+DATA_DIR = Path(__file__).resolve().parent / "training_data"  # this folder's data
+
+DEFAULT_MODEL_PATH = DATA_DIR / "value_model.npz"
 RBF_CENTERS = np.linspace(6.0, 594.0, 25)
 RBF_WIDTH = 24.0
 TARGET_SCALE = 100.0  # seconds per network output unit

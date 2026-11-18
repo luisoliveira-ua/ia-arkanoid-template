@@ -21,7 +21,7 @@ import numpy as np
 
 from agents.expectimax_agent import ExpectimaxAgent
 from agents.fast_physics import Geometry
-from agents.value_model import DEFAULT_MODEL_PATH, LevelNet, ValueModel
+from experiments.value_model import DEFAULT_MODEL_PATH, LevelNet, ValueModel
 
 
 class ValueAgent(ExpectimaxAgent):

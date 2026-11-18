@@ -227,7 +227,7 @@ __marimo__/
 .DS_Store
 Thumbs.db
 highscores.csv
-training_data/rl_q_values.json
-training_data/rl_q_values.json.tmp
-training_data/rl_training_results.json
-training_data/rollouts_*.csv.gz
+experiments/training_data/rl_q_values.json
+experiments/training_data/rl_q_values.json.tmp
+experiments/training_data/rl_training_results.json
+experiments/training_data/rollouts_*.csv.gz

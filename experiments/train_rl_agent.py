@@ -11,15 +11,16 @@ from io import StringIO
 from pathlib import Path
 from typing import Any
 
-from agents.rl_agent import DEFAULT_Q_PATH, ReinforcementAgent
-from agents.strategic_agent import StrategicAgent
+from experiments.rl_agent import DEFAULT_Q_PATH, ReinforcementAgent
+from experiments.strategic_agent import StrategicAgent
 from server.config import load_config
 from server.highscores import HighScoreManager
 from server.logic import Arkanoid
 
 
-ROOT = Path(__file__).resolve().parent
-DEFAULT_RESULTS_PATH = ROOT / "training_data" / "rl_training_results.json"
+ROOT = Path(__file__).resolve().parents[1]  # repository root (config.json, maps/)
+DATA_DIR = Path(__file__).resolve().parent / "training_data"  # this folder's data
+DEFAULT_RESULTS_PATH = DATA_DIR / "rl_training_results.json"
 
 
 def _run_episode(

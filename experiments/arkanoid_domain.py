@@ -13,7 +13,7 @@ from dataclasses import dataclass
 import math
 import re
 from typing import Any
-from tree import SearchDomain, SearchProblem, SearchTree
+from experiments.tree import SearchDomain, SearchProblem, SearchTree
 
 
 @dataclass(frozen=True)

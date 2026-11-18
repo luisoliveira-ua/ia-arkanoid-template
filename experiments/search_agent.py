@@ -6,7 +6,7 @@ import logging
 from typing import Any
 
 from agents.base_agent import BaseAgent
-from arkanoid_domain import ArkanoidSearchDomain, search_decision
+from experiments.arkanoid_domain import ArkanoidSearchDomain, search_decision
 
 
 AGENT_ID: str | None = None

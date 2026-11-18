@@ -30,11 +30,13 @@ import numpy as np
 
 from agents.expectimax_agent import ExpectimaxAgent
 from agents.fast_physics import fly, launch
-from agents.value_model import LevelNet, ValueModel, layout_of
-from train_value import LEVELS, TIME_LIMIT, fit, level_setup
+from experiments.value_model import LevelNet, ValueModel, layout_of
+from experiments.train_value import LEVELS, TIME_LIMIT, fit, level_setup
 
-DEFAULT_OUT = Path("training_data/value_model_expectimax.npz")
-DATA_DIR = Path("training_data/expectimax_games")
+DATA_DIR = Path(__file__).resolve().parent / "training_data"  # this folder's data
+
+DEFAULT_OUT = DATA_DIR / "value_model_expectimax.npz"
+GAMES_DIR = DATA_DIR / "expectimax_games"
 
 
 def expectimax_zone(agent: ExpectimaxAgent, geo: Any, health: list[int], contact_x: float,
@@ -107,12 +109,12 @@ def main() -> None:
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
     args = parser.parse_args()
 
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    GAMES_DIR.mkdir(parents=True, exist_ok=True)
     games: dict[int, list[dict[str, Any]]] = {level: [] for level in LEVELS}
     todo = []
     for seed in range(args.seed_start, args.seed_start + args.games):  # levels interleaved
         for level in LEVELS:
-            path = DATA_DIR / f"{level}_{seed}.npz"
+            path = GAMES_DIR / f"{level}_{seed}.npz"
             if path.exists():  # games are kept, so an interrupted run resumes
                 with np.load(path) as d:
                     games[level].append({k: d[k] for k in d.files} | {"level": level})
@@ -121,7 +123,7 @@ def main() -> None:
     started = time.time()
     with Pool(args.workers) as pool:
         for k, game in enumerate(pool.imap_unordered(play, todo, chunksize=1)):
-            np.savez_compressed(DATA_DIR / f"{game['level']}_{game['seed']}.npz",
+            np.savez_compressed(GAMES_DIR / f"{game['level']}_{game['seed']}.npz",
                                 **{key: game[key] for key in ("boards", "xs", "secs", "ends")},
                                 norm=game["norm"], cleared=game["cleared"])
             games[game["level"]].append(game)
@@ -153,7 +155,7 @@ def main() -> None:
         nets.append(LevelNet(layout, weights))
     ValueModel(nets).save(args.out)
     print(f"saved {args.out}", flush=True)
-    Path("training_data/expectimax_value_training.json").write_text(json.dumps(
+    (DATA_DIR / "expectimax_value_training.json").write_text(json.dumps(
         {"games": args.games, "lam": args.lam, "td_rounds": args.td_rounds,
          "expectimax": {level: float(np.mean([g["norm"] for g in games[level]])) for level in LEVELS}},
         indent=2), encoding="utf-8")

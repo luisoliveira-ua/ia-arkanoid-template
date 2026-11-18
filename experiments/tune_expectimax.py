@@ -25,6 +25,8 @@ from server.config import load_config
 from server.highscores import HighScoreManager
 from server.logic import Arkanoid
 
+DATA_DIR = Path(__file__).resolve().parent / "training_data"  # this folder's data
+
 # Screening plays with an unlimited planning budget. ENDGAME_HITS and NEXT_BOARD_LIMIT change
 # the search cost, so the final validation also runs under the live per-tick budget (--budgeted).
 GRID = {
@@ -152,7 +154,7 @@ def main() -> None:
     parser.add_argument("--budgeted", action="store_true",
                         help="validate under the live per-tick planning budget (use fewer workers than cores)")
     parser.add_argument("--workers", type=int, default=12)
-    parser.add_argument("--log", type=Path, default=Path("training_data/expectimax_tuning.json"))
+    parser.add_argument("--log", type=Path, default=DATA_DIR / "expectimax_tuning.json")
     args = parser.parse_args()
 
     args.log.parent.mkdir(parents=True, exist_ok=True)

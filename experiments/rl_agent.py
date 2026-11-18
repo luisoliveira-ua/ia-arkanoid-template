@@ -16,12 +16,12 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from agents.strategic_agent import StrategicAgent
-from arkanoid_domain import ArkanoidSearchDomain, ArkanoidState
+from experiments.strategic_agent import StrategicAgent
+from experiments.arkanoid_domain import ArkanoidSearchDomain, ArkanoidState
 
 
-ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_Q_PATH = ROOT / "training_data" / "rl_q_values.json"
+DATA_DIR = Path(__file__).resolve().parent / "training_data"  # this folder's data
+DEFAULT_Q_PATH = DATA_DIR / "rl_q_values.json"
 
 
 @dataclass(frozen=True)

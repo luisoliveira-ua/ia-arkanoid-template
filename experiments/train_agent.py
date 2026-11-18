@@ -14,12 +14,13 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
-from arkanoid_domain import ArkanoidSearchDomain, ArkanoidState, BrickState
-from learn_policy import train_policy
+from experiments.arkanoid_domain import ArkanoidSearchDomain, ArkanoidState, BrickState
+from experiments.learn_policy import train_policy
 from server.config import load_config
 
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]  # repository root (config.json, maps/)
+DATA_DIR = Path(__file__).resolve().parent / "training_data"  # this folder's data
 DEFAULT_SIMULATIONS = 1_000_000
 RNG_SEED = 20261116
 
@@ -278,7 +279,7 @@ def main() -> None:
     parser.add_argument("--simulations", type=int, default=DEFAULT_SIMULATIONS)
     parser.add_argument("--seed", type=int, default=RNG_SEED)
     parser.add_argument(
-        "--output-dir", type=Path, default=ROOT / "training_data"
+        "--output-dir", type=Path, default=DATA_DIR
     )
     args = parser.parse_args()
     summary = train(args.simulations, args.output_dir, args.seed)

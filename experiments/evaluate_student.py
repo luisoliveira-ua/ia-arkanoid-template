@@ -24,14 +24,14 @@ from typing import Any
 
 from agents.base_agent import BaseAgent
 from agents.dummy_agent import DummyAgent
-from agents.strategic_agent import StrategicAgent
-from arkanoid_domain import ArkanoidSearchDomain, ArkanoidState
+from experiments.strategic_agent import StrategicAgent
+from experiments.arkanoid_domain import ArkanoidSearchDomain, ArkanoidState
 from server.config import load_config
 from server.highscores import HighScoreManager
 from server.logic import Arkanoid
 
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]  # repository root (config.json, maps/)
 SERVER_WORKER = r"""
 import asyncio, random, sys
 if sys.platform == "win32":
@@ -394,7 +394,7 @@ def main() -> None:
     parser.add_argument("--level-time-limit", type=float, default=600.0)
     parser.add_argument("--startup-timeout", type=float, default=15.0)
     parser.add_argument("--episode-timeout", type=float, default=240.0)
-    parser.add_argument("--output", type=Path, default=ROOT / "evaluation_results.json")
+    parser.add_argument("--output", type=Path, default=ROOT / "experiments" / "results" / "evaluation_results.json")
     args = parser.parse_args()
     if args.games < 1 or args.acceleration <= 0:
         parser.error("--games and --acceleration must be positive")

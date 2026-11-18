@@ -22,7 +22,9 @@ import numpy as np
 from agents.expectimax_agent import ExpectimaxAgent
 from agents.fast_physics import Geometry
 
-DEFAULT_WEIGHTS_PATH = Path(__file__).resolve().parents[1] / "training_data" / "tail_weights.json"
+DATA_DIR = Path(__file__).resolve().parent / "training_data"  # this folder's data
+
+DEFAULT_WEIGHTS_PATH = DATA_DIR / "tail_weights.json"
 
 
 class TailAgent(ExpectimaxAgent):

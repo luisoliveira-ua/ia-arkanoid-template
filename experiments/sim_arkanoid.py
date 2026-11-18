@@ -17,7 +17,7 @@ import random
 from dataclasses import dataclass, field
 from typing import Any
 
-from agents.search_agent import SearchAgent
+from experiments.search_agent import SearchAgent
 from student import StudentAgent
 
 W, H = 600.0, 800.0

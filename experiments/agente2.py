@@ -18,7 +18,7 @@ import time
 from typing import Any
 
 from agents.base_agent import BaseAgent
-from arkanoid_domain import ArkanoidSearchDomain, ArkanoidState
+from experiments.arkanoid_domain import ArkanoidSearchDomain, ArkanoidState
 
 AGENT_ID: str | None = None
 MAX_SIM_EVENTS = 2048

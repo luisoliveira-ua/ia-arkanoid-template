@@ -11,7 +11,8 @@ from pathlib import Path
 from typing import Any, TextIO
 
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]  # repository root (config.json, maps/)
+DATA_DIR = Path(__file__).resolve().parent / "training_data"  # this folder's data
 MIN_ACTION_SAMPLES = 64
 TARGET_POINTS_PER_SECOND = 16.0
 
@@ -195,11 +196,11 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Learn a score-rate policy from saved rollouts")
     parser.add_argument(
         "--rollouts", type=Path, nargs="+",
-        default=[ROOT / "training_data" / "rollouts_1000000.csv.gz"],
+        default=[DATA_DIR / "rollouts_1000000.csv.gz"],
     )
     parser.add_argument(
         "--profile", type=Path,
-        default=ROOT / "training_data" / "learned_policy.json",
+        default=DATA_DIR / "learned_policy.json",
     )
     args = parser.parse_args()
     print(json.dumps(train_policy(args.rollouts, args.profile), indent=2))

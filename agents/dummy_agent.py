@@ -1,8 +1,7 @@
-"""Dummy autonomous agent that randomly selects from valid actions."""
+"""Dummy autonomous agent that keeps the paddle centre under the ball."""
 
 import argparse
 import asyncio
-import random
 from typing import Any
 
 from agents.base_agent import BaseAgent
@@ -10,16 +9,15 @@ from agents.base_agent import BaseAgent
 AGENT_ID: str | None = None  # your id (e.g. "a12345"); --id overrides it; None = random
 
 
-
-
-
 class DummyAgent(BaseAgent):
-    """Agent that randomly chooses between valid actions or idling."""
+    """Agent that follows the ball horizontally, or idles when the state has no positions."""
 
-    async def raquete(self):
-        s = self.current_state
-        centro_raquete = s["paddle_x"] + s["paddle_width"] / 2
-        diff = s["ball_x"] - centro_raquete   # >0: bola à direita
+    async def raquete(self) -> dict[str, Any] | None:
+        s = self.current_state or {}
+        if "paddle_x" not in s or "ball_x" not in s:
+            return None
+        centro_raquete = s["paddle_x"] + s.get("paddle_width", 84.0) / 2
+        diff = s["ball_x"] - centro_raquete  # >0: bola à direita
 
         margem = 14
         if diff > margem:
@@ -29,7 +27,7 @@ class DummyAgent(BaseAgent):
         return None
 
     async def deliberate(self) -> dict[str, Any] | None:
-        """Sample uniformly from valid moves provided in current state."""
+        """Move towards the ball when there are valid moves."""
         if not self.current_state or self.current_state.get("game_over"):
             return None
 
@@ -40,9 +38,6 @@ class DummyAgent(BaseAgent):
         )
         if not valid_actions:
             return None
-
-
-        # Randomly choose a valid move or do nothing (stay idle)
         return await self.raquete()
 
 
