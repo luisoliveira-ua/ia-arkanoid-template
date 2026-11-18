@@ -55,8 +55,13 @@ Arkanoid variant with JSON maps for training and evaluating AI agents, built on 
 ## Group members
 
 - `<Luis Oliveira>` — `<125016>`
+<<<<<<< HEAD
 - `<Margarida Teixeira>` — `<126011>`
 - `<Tomás Cardoso>` — `<125050>`
+=======
+- `<Tomás Cardoso>` — `<125050>`
+- `<Margarida Teixeira>` — `<126011>`
+>>>>>>> fcb4132dcfdf9d555f6b501419cce7cdc468d71c
 
 ## Quick Start
 
